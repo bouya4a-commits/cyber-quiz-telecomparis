@@ -55,6 +55,11 @@ Accédez à `/admin.html` pour visualiser :
 - Distribution des scores
 - Liste chronologique des participations
 
+## ajout 
+
+npm install bcrypt
+
+
 ---
 
 Développé avec ❤️ pour la cybersécurité pour TP/IMT.
