@@ -301,4 +301,67 @@
       console.error("Impossible de contacter le serveur.", err);
     }
   }
+    /* Style des boutons de réponse */
+.answer-btn {
+  width: 100%;
+  padding: 16px;
+  margin: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #2c3e50;
+  font-size: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Effet de survol */
+.answer-btn:hover {
+  background: #edf2f7;
+  border-color: #3498db;
+}
+
+/* Animation de bordure tournante (spinner) */
+.answer-btn::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  z-index: -1;
+  border: 2px solid transparent;
+  border-top-color: #3498db;
+  border-radius: 12px;
+  animation: rotate 1.5s linear infinite;
+}
+
+/* Désactiver l'animation quand une réponse est sélectionnée */
+.answer-btn.selected::before,
+.answer-btn.correct::before,
+.answer-btn.incorrect::before {
+  animation: none;
+  border: 2px solid transparent;
+}
+
+/* Réponse correcte */
+.answer-btn.correct {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+/* Réponse incorrecte */
+.answer-btn.incorrect {
+  background: #f8d7da;
+  border-color: #dc3545;
+}
+
+/* Animation de rotation */
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </script>
