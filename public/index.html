@@ -229,17 +229,27 @@
   }
 
   function selectAnswer(selected) {
-    const q = questions[currentQuestion];
-    if (selected === q.correct) {
-      score++;
-      document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
-    } else {
-      document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
-      document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
+  const q = questions[currentQuestion];
+  const buttons = document.querySelectorAll('.answer-btn');
+  
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    btn.classList.remove('selected');
+    
+    if (i === selected) {
+      if (i === q.correct) {
+        btn.classList.add('correct');
+        score++;
+      } else {
+        btn.classList.add('incorrect');
+      }
+    } else if (i === q.correct) {
+      btn.classList.add('correct');
     }
-    document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
-    document.getElementById('next-btn').style.display = 'block';
-  }
+  });
+
+  document.getElementById('next-btn').style.display = 'block';
+}
 
   function nextQuestion() {
     currentQuestion++;
