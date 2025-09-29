@@ -1,3 +1,16 @@
+cyber-quiz-Telecomparis/
+├── public/
+│   ├── index.html          ← Quiz principal
+│   └── admin.html          ← Tableau de bord admin
+├── server.js               ← Backend (Express)
+├── results.csv             ← Résultats anonymisés (créé automatiquement)
+├── .env.example            ← Exemple de variables d’environnement
+├── .gitignore
+├── package.json
+└── README.md               ← Instructions de déploiement
+
+
+
 # 🔐 Quiz Cybersécurité - Télécom Paris
 
 Pour sensibiliser Télécom Paris avec un quiz interactif, sécurisé et ludique.
