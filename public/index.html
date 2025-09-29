@@ -173,8 +173,10 @@
         alert("Veuillez entrer un email valide.");
         return;
       }
-      if (!email.endsWith('@ecole.fr')) { // À adapter à votre domaine
-        alert("Veuillez utiliser votre email professionnel de l’école.");
+      // Autorise @telecom-paris.fr et @imt.fr (y compris les sous-domaines)
+      const emailRegex = /^[^\s@]+@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i;
+      if (!emailRegex.test(email)) {
+        alert("Veuillez utiliser un email professionnel de Télécom Paris ou de l'IMT (ex: prenom@telecom-paris.fr ou nom@imt.fr).");
         return;
       }
       userEmail = email;
