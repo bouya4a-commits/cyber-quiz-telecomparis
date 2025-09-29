@@ -55,7 +55,7 @@ Accédez à `/admin.html` pour visualiser :
 - Distribution des scores
 - Liste chronologique des participations
 
-## ajout 
+## ajout crypt
 
 npm install bcrypt
 
