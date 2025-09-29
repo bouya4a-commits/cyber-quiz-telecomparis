@@ -115,26 +115,28 @@ app.get('/api/admin/logo', (req, res) => {
 });
 
 // ========== EXPORT BADGE PDF ==========
-app.get('/api/badge/:level', async (req, res) => {
+// Route temporaire pour le badge (sans PDF)
+app.get('/api/badge/:level', (req, res) => {
   const { level } = req.params;
   const levels = { 'Expert': '🥇', 'Avancé': '🥈', 'Intermédiaire': '🥉', 'Débutant': '📚' };
   const emoji = levels[level] || '🏅';
 
-  // Créer un canvas PDF
-  const canvas = createCanvas(600, 400);
-  const ctx = canvas.getContext('2d');
-
-  // Fond
-  ctx.fillStyle = '#f8f9fa';
-  ctx.fillRect(0, 0, 600, 400);
-
-  // Logo
-  const logoPath = path.join(__dirname, 'assets', config.logo);
-  if (fs.existsSync(logoPath)) {
-    const img = new Canvas.Image();
-    img.src = fs.readFileSync(logoPath);
-    ctx.drawImage(img, 50, 50, 100, 100);
-  }
+  // Génère une page HTML simple (au lieu d’un PDF)
+  const html = `
+    <html>
+    <head><title>Badge ${level}</title></head>
+    <body style="font-family:Arial;text-align:center;padding:50px;">
+      <h1>🏆 Badge Cybersécurité</h1>
+      <div style="font-size:100px;margin:30px;">${emoji}</div>
+      <h2>Niveau : ${level}</h2>
+      <p>Ce badge est une preuve de votre engagement en cybersécurité.</p>
+      <button onclick="window.print()">Imprimer ce badge</button>
+    </body>
+    </html>
+  `;
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
 
   // Texte
   ctx.fillStyle = '#2c3e50';
