@@ -21,35 +21,36 @@ app.use(express.static('public'));
 
 // Route : soumission du quiz
 app.post('/api/submit-quiz', (req, res) => {
-  const { email, score, total } = req.body;
+  const { email, department, score, total } = req.body;
 
-  // Validation des données
+  // Validation
   if (
     !email ||
     typeof email !== 'string' ||
-    !/@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i.test(email) || // Accepte : xxx@telecom-paris.fr (y compris sous-domaines comme etud.telecom-paris.fr)
+    !/@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i.test(email) ||
+    !department || // ← obligatoire
+    typeof department !== 'string' ||
+    department.trim() === '' ||
     typeof score !== 'number' ||
     typeof total !== 'number' ||
     score < 0 ||
     total <= 0 ||
     score > total
   ) {
-    return res.status(400).json({ error: 'Données invalides ou email non autorisé.' });
+    return res.status(400).json({ error: 'Données invalides.' });
   }
 
-  // Calcul du niveau
   const percent = (score / total) * 100;
   let level = 'Débutant';
   if (percent >= 90) level = 'Expert';
   else if (percent >= 70) level = 'Avancé';
   else if (percent >= 50) level = 'Intermédiaire';
 
-  // Sauvegarde anonymisée (aucun email stocké)
-  const logEntry = `${new Date().toISOString()},${score},${total},${level}\n`;
+  // Sauvegarde : email NON stocké, mais department OUI
+  const logEntry = `${new Date().toISOString()},${score},${total},${level},${department}\n`;
   fs.appendFileSync(RESULTS_FILE, logEntry);
 
-  // Réponse au frontend
-  res.json({ success: true, level, score: percent });
+  res.json({ success: true, level });
 });
 
 // Route : données pour le tableau de bord admin
