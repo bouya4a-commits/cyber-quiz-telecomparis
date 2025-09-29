@@ -140,9 +140,14 @@ app.get('/api/badge/:level', (req, res) => {
       </style>
     </head>
     <body>
-      <h1>🏆 Badge Cybersécurité</h1>
+      <div class="header">
+        <img class="logo" src="/assets/logo.png" alt="Logo">
+        <div>
+          <h1>🏆 Badge Cybersécurité</h1>
+          <h2>${level}</h2>
+        </div>
+      </div>
       <div class="badge">${emoji}</div>
-      <h2>Niveau : ${level}</h2>
       <p>Ce badge atteste de votre engagement en faveur de la cybersécurité.</p>
       <button class="btn" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
     </body>
