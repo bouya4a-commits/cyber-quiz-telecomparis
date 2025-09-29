@@ -27,7 +27,8 @@ Pour sensibiliser Télécom Paris avec un quiz interactif, sécurisé et ludique
 3. `npm install`
 4. Copier `.env.example` en `.env`, adapter si besoin
 5. `npm start`
-6. Ouvrir :
+6. `npm install nodemailer`
+7. Ouvrir :
    - Quiz : http://localhost:3000
    - Admin : http://localhost:3000/admin.html
 
