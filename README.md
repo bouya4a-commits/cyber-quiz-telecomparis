@@ -1,7 +1,6 @@
 ## 📁 Structure du projet
 
 ```markdown
-```text
 cyber-quiz-ecole/
 ├── public/
 │ ├── index.html # Page du quiz
