@@ -3,144 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📊 Tableau de bord - Quiz Cybersécurité</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Quiz Cybersécurité - Télécom Paris / IMT</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f8f9fa;
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --light: #ecf0f1;
+    }
+    * {
+      box-sizing: border-box;
       margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 20px;
     }
     .container {
-      max-width: 1000px;
-      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 600px;
+      padding: 30px;
+      text-align: center;
     }
     h1 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 30px;
+      color: var(--primary);
+      margin-bottom: 20px;
     }
-    .chart {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      margin-bottom: 25px;
-    }
-    table {
+    input, select, button {
       width: 100%;
-      border-collapse: collapse;
-      background: white;
+      padding: 14px;
+      margin: 10px 0;
       border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #ddd;
+      font-size: 16px;
     }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-    th {
-      background: #3498db;
+    button {
+      background: var(--secondary);
       color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .question-container, .result-container {
+      display: none;
+    }
+    .badge {
+      font-size: 80px;
+      margin: 20px 0;
+    }
+    .progress {
+      height: 8px;
+      background: #eee;
+      border-radius: 4px;
+      margin: 20px 0;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--secondary);
+      width: 0%;
+      transition: width 0.3s;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📊 Tableau de bord - Sensibilisation Cybersécurité</h1>
+  <div class="container" id="email-screen">
+    <h1>🔐 Quiz Cybersécurité</h1>
+    <p>Veuillez entrer vos informations professionnelles :</p>
+    <input type="email" id="user-email" placeholder="prenom.nom@telecom-paris.fr" required />
+    <select id="user-department" required>
+      <option value="">-- Sélectionnez votre département / équipe --</option>
+      <option value="Direction">Direction</option>
+      <option value="Administration">Administration</option>
+      <option value="Enseignement">Enseignement</option>
+      <option value="Recherche - LTCI">Recherche - LTCI</option>
+      <option value="Recherche - INFRES">Recherche - INFRES</option>
+      <option value="Recherche - S2A">Recherche - S2A</option>
+      <option value="Recherche - Autre">Recherche - Autre</option>
+      <option value="IT / DSI">IT / DSI</option>
+      <option value="Bibliothèque">Bibliothèque</option>
+      <option value="Autre">Autre</option>
+    </select>
+    <button onclick="startQuiz()">Commencer le quiz</button>
+  </div>
 
-    <div class="chart">
-      <canvas id="levelChart"></canvas>
-    </div>
+  <div class="container question-container" id="quiz-screen">
+    <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+    <h2 id="question-text">Question ?</h2>
+    <div id="answers"></div>
+    <button id="next-btn" style="display:none;" onclick="nextQuestion()">Suivant</button>
+  </div>
 
-    <div class="chart">
-      <canvas id="scoreChart"></canvas>
-    </div>
-
-    <h2>Détail des participations</h2>
-    <table id="resultsTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Score</th>
-          <th>Total</th>
-          <th>Niveau</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+  <div class="container result-container" id="result-screen">
+    <h1>Votre résultat 🎉</h1>
+    <div class="badge" id="badge">🏅</div>
+    <p id="result-message"></p>
+    <p id="result-email"></p>
+    <p>Merci d’avoir participé !</p>
   </div>
 
   <script>
-    // Charger les données depuis le backend
-    fetch('/api/results')
-      .then(res => res.json())
-      .then(data => {
-        renderCharts(data);
-        renderTable(data);
-      })
-      .catch(err => {
-        document.body.innerHTML = '<h2 style="text-align:center;color:red">Erreur : impossible de charger les données.</h2>';
-        console.error(err);
-      });
+    // Questions du quiz
+    const questions = [
+      { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
+      { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
+      { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
+      { q: "Faut-il mettre à jour ses logiciels ?", a: ["Non", "Seulement les payants", "Oui, pour corriger les failles", "Uniquement si l’IT le demande"], correct: 2 },
+      { q: "Que faire en quittant votre poste ?", a: ["Verrouiller l’écran", "Laisser allumé", "Débrancher le câble", "Rien"], correct: 0 },
+      { q: "Qu’est-ce qu’un VPN ?", a: ["Un antivirus", "Un réseau privé virtuel sécurisé", "Un type de mot de passe", "Un outil de piratage"], correct: 1 },
+      { q: "Est-il sécurisé d’utiliser une clé USB trouvée ?", a: ["Oui, si propre", "Non, risque de malware", "Oui, après formatage", "Seulement si petite"], correct: 1 },
+      { q: "Risque principal du Wi-Fi public ?", a: ["Connexion lente", "Vol de données en clair", "Perte de batterie", "Publicité"], correct: 1 },
+      { q: "Que signifie 2FA ?", a: ["Deux fichiers", "Authentification à deux facteurs", "Format sécurisé", "Double antivirus"], correct: 1 },
+      { q: "Qui contacter en cas de cyberattaque ?", a: ["Personne", "Un ami", "Le service informatique", "Google"], correct: 2 }
+    ];
 
-    function renderCharts(data) {
-      // Répartition par niveau
-      const levels = { 'Expert': 0, 'Avancé': 0, 'Intermédiaire': 0, 'Débutant': 0 };
-      const scores = [];
+    let currentQuestion = 0;
+    let score = 0;
+    let userEmail = '';
+    let userDepartment = '';
 
-      data.forEach(r => {
-        levels[r.level]++;
-        scores.push(r.score);
-      });
+    function startQuiz() {
+      const email = document.getElementById('user-email').value.trim();
+      const department = document.getElementById('user-department').value;
 
-      // Graphique niveaux
-      new Chart(document.getElementById('levelChart'), {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(levels),
-          datasets: [{
-            data: Object.values(levels),
-            backgroundColor: ['#2ecc71', '#3498db', '#f39c12', '#e74c3c']
-          }]
-        },
-        options: { responsive: true, plugins: { title: { display: true, text: 'Répartition des niveaux' } } }
-      });
+      const emailRegex = /^[^\s@]+@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i;
+      if (!emailRegex.test(email)) {
+        alert("Veuillez utiliser un email @telecom-paris.fr ou @imt.fr.");
+        return;
+      }
+      if (!department) {
+        alert("Veuillez sélectionner votre département.");
+        return;
+      }
 
-      // Histogramme des scores
-      const scoreBins = [0,0,0,0,0]; // 0-19, 20-39, ..., 80-100
-      scores.forEach(s => {
-        const bin = Math.min(Math.floor(s / 20), 4);
-        scoreBins[bin]++;
-      });
-
-      new Chart(document.getElementById('scoreChart'), {
-        type: 'bar',
-        data: {
-          labels: ['0-19%', '20-39%', '40-59%', '60-79%', '80-100%'],
-          datasets: [{
-            label: 'Nombre de participants',
-            data: scoreBins,
-            backgroundColor: '#9b59b6'
-          }]
-        },
-        options: { responsive: true, plugins: { title: { display: true, text: 'Distribution des scores' } } }
-      });
+      userEmail = email;
+      userDepartment = department;
+      document.getElementById('email-screen').style.display = 'none';
+      document.getElementById('quiz-screen').style.display = 'block';
+      loadQuestion();
     }
 
-    function renderTable(data) {
-      const tbody = document.getElementById('tableBody');
-      data.forEach(r => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
-          <td>${new Date(r.date).toLocaleString('fr-FR')}</td>
-          <td>${r.score}</td>
-          <td>${r.total}</td>
-          <td>${r.level}</td>
-        `;
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question-text').textContent = q.q;
+      const answersDiv = document.getElementById('answers');
+      answersDiv.innerHTML = '';
+      q.a.forEach((answer, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = answer;
+        btn.style.marginTop = '10px';
+        btn.style.backgroundColor = '#f8f9fa';
+        btn.onclick = () => selectAnswer(index);
+        answersDiv.appendChild(btn);
       });
+      document.getElementById('next-btn').style.display = 'none';
+      updateProgress();
+    }
+
+    function selectAnswer(selected) {
+      const q = questions[currentQuestion];
+      if (selected === q.correct) {
+        score++;
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
+      } else {
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
+        document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
+      }
+      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
+      document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function updateProgress() {
+      const percent = ((currentQuestion) / questions.length) * 100;
+      document.getElementById('progress-bar').style.width = percent + '%';
+    }
+
+    function showResult() {
+      document.getElementById('quiz-screen').style.display = 'none';
+      document.getElementById('result-screen').style.display = 'block';
+
+      const percent = (score / questions.length) * 100;
+      let badge = '📚', message = '';
+      if (percent >= 90) { badge = '🥇'; message = "Excellent ! Vous êtes un champion de la cybersécurité !"; }
+      else if (percent >= 70) { badge = '🥈'; message = "Très bon ! Vous maîtrisez les bases essentielles."; }
+      else if (percent >= 50) { badge = '🥉'; message = "Bon début ! Relisez les bonnes pratiques."; }
+      else { message = "À revoir ! La cybersécurité est cruciale pour tous."; }
+
+      document.getElementById('badge').textContent = badge;
+      document.getElementById('result-message').textContent = message;
+      document.getElementById('result-email').textContent = `Résultat pour : ${userEmail}`;
+
+      sendDataToServer({ email: userEmail, department: userDepartment, score, total: questions.length });
+    }
+
+    async function sendDataToServer(data) {
+      try {
+        const response = await fetch('/api/submit-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) console.warn("Erreur lors de l’envoi.");
+      } catch (err) {
+        console.error("Impossible de contacter le serveur.", err);
+      }
     }
   </script>
 </body>
