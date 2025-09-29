@@ -141,8 +141,6 @@ app.get('/api/badge/:level', (req, res) => {
     </head>
     <body>
       <div class="header">
-        <img class="logo" src="/assets/logo.png" alt="Logo">
-        <div>
           <h1>🏆 Badge Cybersécurité</h1>
           <h2>${level}</h2>
         </div>
