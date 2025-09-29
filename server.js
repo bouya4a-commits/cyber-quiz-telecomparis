@@ -9,26 +9,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const RESULTS_FILE = path.join(__dirname, 'results.csv');
 
-// Créer le fichier results.csv s'il n'existe pas
+// Créer results.csv avec en-tête si absent
 if (!fs.existsSync(RESULTS_FILE)) {
   fs.writeFileSync(RESULTS_FILE, 'date,score,total,level,department\n');
 }
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Route : soumission du quiz
+// Soumission du quiz
 app.post('/api/submit-quiz', (req, res) => {
   const { email, department, score, total } = req.body;
 
-  // Validation
+  // Validation stricte
   if (
     !email ||
     typeof email !== 'string' ||
     !/@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i.test(email) ||
-    !department || // ← obligatoire
+    !department ||
     typeof department !== 'string' ||
     department.trim() === '' ||
     typeof score !== 'number' ||
@@ -46,19 +45,18 @@ app.post('/api/submit-quiz', (req, res) => {
   else if (percent >= 70) level = 'Avancé';
   else if (percent >= 50) level = 'Intermédiaire';
 
-  // Sauvegarde : email NON stocké, mais department OUI
+  // Sauvegarde anonymisée (email non stocké)
   const logEntry = `${new Date().toISOString()},${score},${total},${level},${department}\n`;
   fs.appendFileSync(RESULTS_FILE, logEntry);
 
   res.json({ success: true, level });
 });
 
-// Route : données pour le tableau de bord admin
+// Données pour l'admin
 app.get('/api/results', (req, res) => {
   try {
     const content = fs.readFileSync(RESULTS_FILE, 'utf8');
     const lines = content.trim().split('\n').slice(1);
-
     const data = lines
       .filter(line => line.trim() !== '')
       .map(line => {
@@ -68,10 +66,9 @@ app.get('/api/results', (req, res) => {
           score: parseInt(score, 10),
           total: parseInt(total, 10),
           level,
-          department // ← ajouté
+          department
         };
       });
-
     res.json(data);
   } catch (err) {
     console.error('Erreur lecture results.csv:', err);
@@ -79,7 +76,6 @@ app.get('/api/results', (req, res) => {
   }
 });
 
-// Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
   console.log(`🎯 Quiz : http://localhost:${PORT}/`);
