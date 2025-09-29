@@ -1,7 +1,6 @@
 ## 📁 Structure du projet
 
-````markdown
-```
+```markdown
 cyber-quiz-ecole/
 ├── public/
 │ ├── index.html # Page du quiz
@@ -12,7 +11,7 @@ cyber-quiz-ecole/
 ├── .env.example # Exemple de variables d'environnement
 ├── .gitignore # Fichiers exclus de Git
 └── README.md # Ce fichier
-...
+
 ```
 
 
