@@ -57,17 +57,18 @@ app.post('/api/submit-quiz', (req, res) => {
 app.get('/api/results', (req, res) => {
   try {
     const content = fs.readFileSync(RESULTS_FILE, 'utf8');
-    const lines = content.trim().split('\n').slice(1); // Ignore l'en-tête
+    const lines = content.trim().split('\n').slice(1);
 
     const data = lines
-      .filter(line => line.trim() !== '') // Ignore les lignes vides
+      .filter(line => line.trim() !== '')
       .map(line => {
-        const [date, score, total, level] = line.split(',');
+        const [date, score, total, level, department] = line.split(',');
         return {
           date,
           score: parseInt(score, 10),
           total: parseInt(total, 10),
-          level
+          level,
+          department // ← ajouté
         };
       });
 
