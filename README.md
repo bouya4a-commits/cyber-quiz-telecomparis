@@ -13,7 +13,7 @@ cyber-quiz-ecole/
 ├── .gitignore # Fichiers exclus de Git
 └── README.md # Ce fichier
 ```
-```
+
 
 
 # 🔐 Quiz Cybersécurité - Télécom Paris
