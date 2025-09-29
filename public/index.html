@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quiz Cybersécurité - École d'Ingénieurs</title>
+  <title>Quiz Cybersécurité - Télécom Paris / IMT</title>
   <style>
     :root {
       --primary: #2c3e50;
@@ -40,7 +40,7 @@
       color: var(--primary);
       margin-bottom: 20px;
     }
-    input, button {
+    input, select, button {
       width: 100%;
       padding: 14px;
       margin: 10px 0;
@@ -59,10 +59,7 @@
     button:hover {
       background: #2980b9;
     }
-    .question-container {
-      display: none;
-    }
-    .result-container {
+    .question-container, .result-container {
       display: none;
     }
     .badge {
@@ -82,28 +79,78 @@
       width: 0%;
       transition: width 0.3s;
     }
+
+    /* --- Styles des réponses avec animation --- */
+    .answer-btn {
+      width: 100%;
+      padding: 16px;
+      margin: 10px 0;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      background: #f9fafb;
+      color: #2c3e50;
+      font-size: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .answer-btn:hover {
+      background: #edf2f7;
+      border-color: #3498db;
+    }
+    .answer-btn::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      z-index: -1;
+      border: 2px solid transparent;
+      border-top-color: #3498db;
+      border-radius: 12px;
+      animation: rotate 1.5s linear infinite;
+    }
+    .answer-btn.selected::before,
+    .answer-btn.correct::before,
+    .answer-btn.incorrect::before {
+      animation: none;
+      border: 2px solid transparent;
+    }
+    .answer-btn.correct {
+      background: #d4edda;
+      border-color: #28a745;
+    }
+    .answer-btn.incorrect {
+      background: #f8d7da;
+      border-color: #dc3545;
+    }
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <div class="container" id="email-screen">
     <h1>🔐 Quiz Cybersécurité</h1>
-    <p>Veuillez entrer votre email professionnel pour commencer :</p>
-    <input type="email" id="user-email" placeholder="prenom.nom@ecole.fr" required />
-
-  <select id="user-department" required style="margin-top:10px;">
-    <option value="">-- Sélectionnez votre département / équipe --</option>
-    <option value="Direction">Direction</option>
-    <option value="Administration">Administration</option>
-    <option value="Enseignement">Enseignement</option>
-    <option value="Recherche - LTCI">Recherche - LTCI</option>
-    <option value="Recherche - INFRES">Recherche - INFRES</option>
-    <option value="Recherche - S2A">Recherche - S2A</option>
-    <option value="Recherche - Autre">Recherche - Autre</option>
-    <option value="IT / DSI">IT / DSI</option>
-    <option value="Bibliothèque">Bibliothèque</option>
-    <option value="Autre">Autre</option>
-  </select>    
-    
+    <p>Veuillez entrer vos informations professionnelles :</p>
+    <input type="email" id="user-email" placeholder="prenom.nom@telecom-paris.fr" required />
+    <select id="user-department" required>
+      <option value="">-- Sélectionnez votre département / équipe --</option>
+      <option value="Direction">Direction</option>
+      <option value="Administration">Administration</option>
+      <option value="Enseignement">Enseignement</option>
+      <option value="Recherche - LTCI">Recherche - LTCI</option>
+      <option value="Recherche - INFRES">Recherche - INFRES</option>
+      <option value="Recherche - S2A">Recherche - S2A</option>
+      <option value="Recherche - Autre">Recherche - Autre</option>
+      <option value="IT / DSI">IT / DSI</option>
+      <option value="Bibliothèque">Bibliothèque</option>
+      <option value="Autre">Autre</option>
+    </select>
     <button onclick="startQuiz()">Commencer le quiz</button>
   </div>
 
@@ -119,259 +166,131 @@
     <div class="badge" id="badge">🏅</div>
     <p id="result-message"></p>
     <p id="result-email"></p>
-    <p>Merci d’avoir participé ! Un récapitulatif vous a été envoyé par email.</p>
+    <p>Merci d’avoir participé !</p>
   </div>
 
   <script>
-  // Questions du quiz
-  const questions = [
-    {
-      q: "Quelle est la meilleure pratique pour un mot de passe ?",
-      a: ["Utiliser le même mot de passe partout", "Ajouter des chiffres et symboles aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire son mot de passe sur un post-it"],
-      correct: 2
-    },
-    {
-      q: "Que faire si vous recevez un email suspect avec une pièce jointe ?",
-      a: ["L’ouvrir pour vérifier", "Le transférer à un collègue", "Le supprimer sans l’ouvrir", "Répondre pour demander qui l’envoie"],
-      correct: 2
-    },
-    {
-      q: "Qu’est-ce que le phishing ?",
-      a: ["Un virus informatique", "Une technique de pêche numérique", "Une tentative de vol d’identifiants par usurpation", "Un logiciel de sauvegarde"],
-      correct: 2
-    },
-    {
-      q: "Faut-il mettre à jour régulièrement ses logiciels ?",
-      a: ["Non, ça ralentit l’ordinateur", "Seulement les logiciels payants", "Oui, pour corriger les failles de sécurité", "Uniquement si l’IT le demande"],
-      correct: 2
-    },
-    {
-      q: "Quand vous quittez votre poste, que devez-vous faire ?",
-      a: ["Verrouiller l’écran", "Laisser l’ordinateur allumé", "Débrancher le câble réseau", "Rien, c’est automatique"],
-      correct: 0
-    },
-    {
-      q: "Qu’est-ce qu’un VPN ?",
-      a: ["Un antivirus", "Un réseau privé virtuel sécurisé", "Un type de mot de passe", "Un outil de piratage"],
-      correct: 1
-    },
-    {
-      q: "Est-il sécurisé d’utiliser une clé USB trouvée dans le hall ?",
-      a: ["Oui, si elle semble propre", "Non, elle peut contenir un malware", "Oui, après l’avoir formatée", "Seulement si elle est petite"],
-      correct: 1
-    },
-    {
-      q: "Quel est le risque principal du Wi-Fi public non sécurisé ?",
-      a: ["Connexion lente", "Vol de données en clair", "Perte de batterie", "Publicité intrusive"],
-      correct: 1
-    },
-    {
-      q: "Que signifie 2FA ?",
-      a: ["Deux fichiers autorisés", "Authentification à deux facteurs", "Format de fichier sécurisé", "Double vérification antivirus"],
-      correct: 1
-    },
-    {
-      q: "Qui contacter en cas de suspicion de cyberattaque ?",
-      a: ["Personne, ce n’est pas grave", "Un ami informaticien", "Le service informatique de l’école", "Google"],
-      correct: 2
-    }
-  ];
+    const questions = [
+      { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
+      { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
+      { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
+      { q: "Faut-il mettre à jour ses logiciels ?", a: ["Non", "Seulement les payants", "Oui, pour corriger les failles", "Uniquement si l’IT le demande"], correct: 2 },
+      { q: "Que faire en quittant votre poste ?", a: ["Verrouiller l’écran", "Laisser allumé", "Débrancher le câble", "Rien"], correct: 0 },
+      { q: "Qu’est-ce qu’un VPN ?", a: ["Un antivirus", "Un réseau privé virtuel sécurisé", "Un type de mot de passe", "Un outil de piratage"], correct: 1 },
+      { q: "Est-il sécurisé d’utiliser une clé USB trouvée ?", a: ["Oui, si propre", "Non, risque de malware", "Oui, après formatage", "Seulement si petite"], correct: 1 },
+      { q: "Risque principal du Wi-Fi public ?", a: ["Connexion lente", "Vol de données en clair", "Perte de batterie", "Publicité"], correct: 1 },
+      { q: "Que signifie 2FA ?", a: ["Deux fichiers", "Authentification à deux facteurs", "Format sécurisé", "Double antivirus"], correct: 1 },
+      { q: "Qui contacter en cas de cyberattaque ?", a: ["Personne", "Un ami", "Le service informatique", "Google"], correct: 2 }
+    ];
 
-  // Variables globales (UNE SEULE DÉCLARATION)
-  let currentQuestion = 0;
-  let score = 0;
-  let userEmail = '';
-  let userDepartment = '';
+    // Variables globales — déclarées UNE SEULE FOIS
+    let currentQuestion = 0;
+    let score = 0;
+    let userEmail = '';
+    let userDepartment = '';
 
-  function startQuiz() {
-    const email = document.getElementById('user-email').value.trim();
-    const department = document.getElementById('user-department').value;
+    function startQuiz() {
+      const email = document.getElementById('user-email').value.trim();
+      const department = document.getElementById('user-department').value;
 
-    // Validation email : uniquement telecom-paris.fr ou imt.fr (y compris sous-domaines)
-    const emailRegex = /^[^\s@]+@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i;
-    if (!emailRegex.test(email)) {
-      alert("Veuillez utiliser un email professionnel de Télécom Paris ou de l'IMT (ex: prenom@telecom-paris.fr ou nom@imt.fr).");
-      return;
-    }
-
-    // Validation département
-    if (!department) {
-      alert("Veuillez sélectionner votre département ou équipe.");
-      return;
-    }
-
-    // Sauvegarde des données
-    userEmail = email;
-    userDepartment = department;
-
-    // Affichage du quiz
-    document.getElementById('email-screen').style.display = 'none';
-    document.getElementById('quiz-screen').style.display = 'block';
-    loadQuestion();
-  }
-
-  function loadQuestion() {
-    const q = questions[currentQuestion];
-    document.getElementById('question-text').textContent = q.q;
-    const answersDiv = document.getElementById('answers');
-    answersDiv.innerHTML = '';
-    q.a.forEach((answer, index) => {
-      const btn = document.createElement('button');
-      btn.textContent = answer;
-      btn.style.marginTop = '10px';
-      btn.style.backgroundColor = '#f8f9fa';
-      btn.style.color = '#333';
-      btn.onclick = () => selectAnswer(index);
-      answersDiv.appendChild(btn);
-    });
-    document.getElementById('next-btn').style.display = 'none';
-    updateProgress();
-  }
-
-  function selectAnswer(selected) {
-  const q = questions[currentQuestion];
-  const buttons = document.querySelectorAll('.answer-btn');
-  
-  buttons.forEach((btn, i) => {
-    btn.disabled = true;
-    btn.classList.remove('selected');
-    
-    if (i === selected) {
-      if (i === q.correct) {
-        btn.classList.add('correct');
-        score++;
-      } else {
-        btn.classList.add('incorrect');
+      const emailRegex = /^[^\s@]+@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i;
+      if (!emailRegex.test(email)) {
+        alert("Veuillez utiliser un email @telecom-paris.fr ou @imt.fr.");
+        return;
       }
-    } else if (i === q.correct) {
-      btn.classList.add('correct');
-    }
-  });
+      if (!department) {
+        alert("Veuillez sélectionner votre département.");
+        return;
+      }
 
-  document.getElementById('next-btn').style.display = 'block';
-}
-
-  function nextQuestion() {
-    currentQuestion++;
-    if (currentQuestion < questions.length) {
+      userEmail = email;
+      userDepartment = department;
+      document.getElementById('email-screen').style.display = 'none';
+      document.getElementById('quiz-screen').style.display = 'block';
       loadQuestion();
-    } else {
-      showResult();
-    }
-  }
-
-  function updateProgress() {
-    const percent = ((currentQuestion) / questions.length) * 100;
-    document.getElementById('progress-bar').style.width = percent + '%';
-  }
-
-  function showResult() {
-    document.getElementById('quiz-screen').style.display = 'none';
-    document.getElementById('result-screen').style.display = 'block';
-
-    const percent = (score / questions.length) * 100;
-    let badge = '📚';
-    let message = '';
-
-    if (percent >= 90) {
-      badge = '🥇';
-      message = "Excellent ! Vous êtes un champion de la cybersécurité !";
-    } else if (percent >= 70) {
-      badge = '🥈';
-      message = "Très bon ! Vous maîtrisez les bases essentielles.";
-    } else if (percent >= 50) {
-      badge = '🥉';
-      message = "Bon début ! Relisez les bonnes pratiques.";
-    } else {
-      message = "À revoir ! La cybersécurité est cruciale pour tous.";
     }
 
-    document.getElementById('badge').textContent = badge;
-    document.getElementById('result-message').textContent = message;
-    document.getElementById('result-email').textContent = `Résultat pour : ${userEmail}`;
-
-    // Envoi des données au backend
-    sendDataToServer({ 
-      email: userEmail, 
-      department: userDepartment,
-      score, 
-      total: questions.length 
-    });
-  }
-
-  async function sendDataToServer(data) {
-    try {
-      const response = await fetch('/api/submit-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question-text').textContent = q.q;
+      const answersDiv = document.getElementById('answers');
+      answersDiv.innerHTML = '';
+      q.a.forEach((answer, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = answer;
+        btn.className = 'answer-btn';
+        btn.onclick = () => selectAnswer(index);
+        answersDiv.appendChild(btn);
       });
-      if (!response.ok) console.warn("Erreur lors de l’envoi des résultats.");
-    } catch (err) {
-      console.error("Impossible de contacter le serveur.", err);
+      document.getElementById('next-btn').style.display = 'none';
+      updateProgress();
     }
-  }
-    /* Style des boutons de réponse */
-.answer-btn {
-  width: 100%;
-  padding: 16px;
-  margin: 10px 0;
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  background: #f9fafb;
-  color: #2c3e50;
-  font-size: 16px;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
 
-/* Effet de survol */
-.answer-btn:hover {
-  background: #edf2f7;
-  border-color: #3498db;
-}
+    function selectAnswer(selected) {
+      const q = questions[currentQuestion];
+      const buttons = document.querySelectorAll('.answer-btn');
+      
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === selected) {
+          if (i === q.correct) {
+            btn.classList.add('correct');
+            score++;
+          } else {
+            btn.classList.add('incorrect');
+          }
+        } else if (i === q.correct) {
+          btn.classList.add('correct');
+        }
+      });
 
-/* Animation de bordure tournante (spinner) */
-.answer-btn::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  z-index: -1;
-  border: 2px solid transparent;
-  border-top-color: #3498db;
-  border-radius: 12px;
-  animation: rotate 1.5s linear infinite;
-}
+      document.getElementById('next-btn').style.display = 'block';
+    }
 
-/* Désactiver l'animation quand une réponse est sélectionnée */
-.answer-btn.selected::before,
-.answer-btn.correct::before,
-.answer-btn.incorrect::before {
-  animation: none;
-  border: 2px solid transparent;
-}
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
 
-/* Réponse correcte */
-.answer-btn.correct {
-  background: #d4edda;
-  border-color: #28a745;
-}
+    function updateProgress() {
+      const percent = (currentQuestion / questions.length) * 100;
+      document.getElementById('progress-bar').style.width = percent + '%';
+    }
 
-/* Réponse incorrecte */
-.answer-btn.incorrect {
-  background: #f8d7da;
-  border-color: #dc3545;
-}
+    function showResult() {
+      document.getElementById('quiz-screen').style.display = 'none';
+      document.getElementById('result-screen').style.display = 'block';
 
-/* Animation de rotation */
-@keyframes rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</script>
+      const percent = (score / questions.length) * 100;
+      let badge = '📚', message = '';
+      if (percent >= 90) { badge = '🥇'; message = "Excellent ! Vous êtes un champion de la cybersécurité !"; }
+      else if (percent >= 70) { badge = '🥈'; message = "Très bon ! Vous maîtrisez les bases essentielles."; }
+      else if (percent >= 50) { badge = '🥉'; message = "Bon début ! Relisez les bonnes pratiques."; }
+      else { message = "À revoir ! La cybersécurité est cruciale pour tous."; }
+
+      document.getElementById('badge').textContent = badge;
+      document.getElementById('result-message').textContent = message;
+      document.getElementById('result-email').textContent = `Résultat pour : ${userEmail}`;
+
+      sendDataToServer({ email: userEmail, department: userDepartment, score, total: questions.length });
+    }
+
+    async function sendDataToServer(data) {
+      try {
+        const response = await fetch('/api/submit-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) console.warn("Erreur lors de l’envoi.");
+      } catch (err) {
+        console.error("Impossible de contacter le serveur.", err);
+      }
+    }
+  </script>
+</body>
+</html>
