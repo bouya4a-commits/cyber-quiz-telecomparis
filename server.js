@@ -27,7 +27,7 @@ app.post('/api/submit-quiz', (req, res) => {
   if (
     !email ||
     typeof email !== 'string' ||
-    !/@telecom-paris\.fr$/.test(email) || // Accepte : xxx@telecom-paris.fr (y compris sous-domaines comme etud.telecom-paris.fr)
+    !/@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i.test(email) || // Accepte : xxx@telecom-paris.fr (y compris sous-domaines comme etud.telecom-paris.fr)
     typeof score !== 'number' ||
     typeof total !== 'number' ||
     score < 0 ||
