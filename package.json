@@ -1,14 +1,14 @@
 {
-  "name": "cyber-quiz-ecole",
+  "name": "cyber-quiz-Telecom-Paris/IMT",
   "version": "1.0.0",
-  "description": "Quiz interactif de sensibilisation à la cybersécurité pour le personnel d'une école d'ingénieurs",
+  "description": "Quiz interactif de sensibilisation à la cybersécurité pour TP et l'IMT",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["cybersecurite", "quiz", "ecole-ingenieurs", "sensibilisation", "formation"],
-  "author": "Votre École d'Ingénieurs",
+  "keywords": ["cybersecurite", "quiz", "hacking", "sensibilisation", "formation", "IMT", "Telecom-Paris, "TP"],
+  "author": "Laurent Rousset",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
