@@ -40,16 +40,12 @@
       color: var(--primary);
       margin-bottom: 20px;
     }
-    <!-- Dans public/index.html -->
-<div class="container" id="email-screen">
-  <h1>🔐 Quiz Cybersécurité</h1>
-  
-  <!-- 🔸 Ajoute cette ligne 🔸 -->
-  <img src="/assets/logo.png" alt="Logo" style="height:60px; margin: 15px 0; border-radius: 8px;">
-
-  <p>Veuillez entrer vos informations professionnelles :</p>
-  <!-- ... reste du formulaire ... -->
-</div>
+    .logo {
+      height: 60px;
+      margin: 15px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
     input, select, button {
       width: 100%;
       padding: 14px;
@@ -146,6 +142,10 @@
 <body>
   <div class="container" id="email-screen">
     <h1>🔐 Quiz Cybersécurité</h1>
+    
+    <!-- 🔸 LOGO ICI 🔸 -->
+    <img class="logo" src="/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
+
     <p>Veuillez entrer vos informations professionnelles :</p>
     <input type="email" id="user-email" placeholder="prenom.nom@telecom-paris.fr" required />
     <select id="user-department" required>
