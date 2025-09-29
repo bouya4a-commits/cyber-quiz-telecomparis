@@ -173,12 +173,6 @@
         alert("Veuillez entrer un email valide.");
         return;
       }
-      // Autorise @telecom-paris.fr et @imt.fr (y compris les sous-domaines)
-      const emailRegex = /^[^\s@]+@([a-z0-9-]+\.)?(telecom-paris\.fr|imt\.fr)$/i;
-      if (!emailRegex.test(email)) {
-        alert("Veuillez utiliser un email professionnel de Télécom Paris ou de l'IMT (ex: prenom@telecom-paris.fr ou nom@imt.fr).");
-        return;
-      }
       userEmail = email;
       document.getElementById('email-screen').style.display = 'none';
       document.getElementById('quiz-screen').style.display = 'block';
