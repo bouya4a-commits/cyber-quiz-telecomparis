@@ -11,7 +11,7 @@ const RESULTS_FILE = path.join(__dirname, 'results.csv');
 
 // Créer le fichier results.csv s'il n'existe pas
 if (!fs.existsSync(RESULTS_FILE)) {
-  fs.writeFileSync(RESULTS_FILE, 'date,score,total,level\n');
+  fs.writeFileSync(RESULTS_FILE, 'date,score,total,level,department\n');
 }
 
 // Middleware
