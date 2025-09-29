@@ -15,15 +15,18 @@ if (!fs.existsSync(RESULTS_FILE)) {
   fs.writeFileSync(RESULTS_FILE, 'date,score,total,level,department,email_partial\n');
 }
 
-// Charger la config
-let config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+// Charger la config (si elle existe)
+let config = { admin: null, logo: 'logo.png' };
+if (fs.existsSync(CONFIG_FILE)) {
+  config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+}
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 app.use('/assets', express.static('assets'));
 
-// ========== ROUTES UTILISATEURS ==========
+// ========== ROUTE UTILISATEURS ==========
 app.post('/api/submit-quiz', (req, res) => {
   const { email, department, score, total } = req.body;
 
@@ -34,7 +37,7 @@ app.post('/api/submit-quiz', (req, res) => {
     return res.status(400).json({ error: 'Données invalides.' });
   }
 
-  // Anonymisation partielle de l'email : laurent***@telecom-paris.fr
+  // Anonymisation partielle : laurent***@telecom-paris.fr
   const [local, domain] = email.split('@');
   const anonymized = local.length > 6 
     ? `${local.substring(0, 3)}***${local.substring(local.length - 3)}@${domain}`
@@ -52,8 +55,12 @@ app.post('/api/submit-quiz', (req, res) => {
   res.json({ success: true, level });
 });
 
-// ========== AUTHENTIFICATION ADMIN ==========
+// ========== AUTH ADMIN ==========
 app.post('/api/admin/login', async (req, res) => {
+  if (!config.admin) {
+    return res.status(500).json({ error: 'Admin non configuré. Exécutez setup-admin.js.' });
+  }
+
   const { username, password } = req.body;
   if (username === config.admin.username) {
     const isValid = await bcrypt.compare(password, config.admin.passwordHash);
@@ -65,8 +72,9 @@ app.post('/api/admin/login', async (req, res) => {
   res.status(401).json({ error: 'Identifiants invalides' });
 });
 
-// Middleware de vérification admin
 const requireAdmin = (req, res, next) => {
+  if (!config.admin) return res.status(500).json({ error: 'Admin non configuré.' });
+  
   const auth = req.headers.authorization;
   if (auth && auth.startsWith('Bearer ')) {
     try {
@@ -88,19 +96,19 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
       return { date, score: +score, total: +total, level, department, email };
     });
 
-    // Statistiques globales
     const totalParticipants = data.length;
-    const avgScore = data.reduce((sum, r) => sum + (r.score / r.total), 0) / totalParticipants * 100 || 0;
+    const avgScore = data.length 
+      ? (data.reduce((sum, r) => sum + (r.score / r.total), 0) / data.length * 100).toFixed(1)
+      : 0;
 
-    // Par département
     const byDept = data.reduce((acc, r) => {
       acc[r.department] = (acc[r.department] || 0) + 1;
       return acc;
     }, {});
 
-    res.json({ totalParticipants, avgScore: avgScore.toFixed(1), byDept, raw: data });
+    res.json({ totalParticipants, avgScore, byDept, raw: data });
   } catch (err) {
-    res.status(500).json({ error: 'Erreur lecture' });
+    res.status(500).json({ error: 'Erreur lecture résultats.' });
   }
 });
 
@@ -113,46 +121,25 @@ app.get('/api/admin/logo', (req, res) => {
   }
 });
 
-// ========== EXPORT BADGE PDF ==========
-// Route temporaire pour le badge (sans PDF)
+// ========== BADGE SANS PDF (HTML IMPRIMABLE) ==========
 app.get('/api/badge/:level', (req, res) => {
   const { level } = req.params;
   const levels = { 'Expert': '🥇', 'Avancé': '🥈', 'Intermédiaire': '🥉', 'Débutant': '📚' };
   const emoji = levels[level] || '🏅';
 
-  // Génère une page HTML simple (au lieu d’un PDF)
   const html = `
+    <!DOCTYPE html>
     <html>
-    <head><title>Badge ${level}</title></head>
-    <body style="font-family:Arial;text-align:center;padding:50px;">
+    <head>
+      <meta charset="utf-8">
+      <title>Badge Cybersécurité</title>
+      <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
+        .badge { font-size: 100px; margin: 30px 0; }
+        .btn { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; }
+      </style>
+    </head>
+    <body>
       <h1>🏆 Badge Cybersécurité</h1>
-      <div style="font-size:100px;margin:30px;">${emoji}</div>
-      <h2>Niveau : ${level}</h2>
-      <p>Ce badge est une preuve de votre engagement en cybersécurité.</p>
-      <button onclick="window.print()">Imprimer ce badge</button>
-    </body>
-    </html>
-  `;
-  res.setHeader('Content-Type', 'text/html');
-  res.send(html);
-});
-
-  // Texte
-  ctx.fillStyle = '#2c3e50';
-  ctx.font = 'bold 36px Arial';
-  ctx.fillText('Badge Cybersécurité', 200, 120);
-  ctx.font = 'bold 80px Arial';
-  ctx.fillText(emoji, 250, 240);
-  ctx.font = '24px Arial';
-  ctx.fillText(`Niveau : ${level}`, 220, 300);
-
-  // Envoyer PDF
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename=badge-${level}.pdf`);
-  const pdf = canvas.toBuffer('application/pdf');
-  res.end(pdf);
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
-});
+      <div class="badge">${emoji}</div>
+      <h2>N
