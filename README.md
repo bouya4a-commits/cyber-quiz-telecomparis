@@ -1,16 +1,22 @@
 ## 📁 Structure du projet
 
 ```markdown
-cyber-quiz-ecole/
+
+
+cyber-quiz-telecomparis/
 ├── public/
-│ ├── index.html # Page du quiz
-│ └── admin.html # Tableau de bord admin
-├── server.js # Serveur Express (backend)
-├── results.csv # Résultats anonymisés (généré automatiquement)
-├── package.json # Dépendances et scripts
-├── .env.example # Exemple de variables d'environnement
-├── .gitignore # Fichiers exclus de Git
-└── README.md # Ce fichier
+│   ├── index.html          ← Quiz utilisateur
+│   └── admin.html          ← Interface admin (protégée)
+├── assets/
+│   └── logo.png            ← Logo personnalisable
+├── server.js               ← Backend avec routes sécurisées
+├── config.json             ← Config: logo, credentials admin
+├── results.csv             ← Résultats (email partiellement anonymisé)
+└── package.json            ← Dépendances et scripts
+├── .gitignore              ← Fichiers exclus de Git
+├── .env.example            ← Exemple de variables d'environnement
+└── README.md               ←  Ce fichier
+
 ```
 
 
