@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📊 Tableau de bord - Quiz Cybersécurité</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+    .chart {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #3498db;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Tableau de bord - Sensibilisation Cybersécurité</h1>
+
+    <div class="chart">
+      <canvas id="levelChart"></canvas>
+    </div>
+
+    <div class="chart">
+      <canvas id="scoreChart"></canvas>
+    </div>
+
+    <h2>Détail des participations</h2>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Score</th>
+          <th>Total</th>
+          <th>Niveau</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // Charger les données depuis le backend
+    fetch('/api/results')
+      .then(res => res.json())
+      .then(data => {
+        renderCharts(data);
+        renderTable(data);
+      })
+      .catch(err => {
+        document.body.innerHTML = '<h2 style="text-align:center;color:red">Erreur : impossible de charger les données.</h2>';
+        console.error(err);
+      });
+
+    function renderCharts(data) {
+      // Répartition par niveau
+      const levels = { 'Expert': 0, 'Avancé': 0, 'Intermédiaire': 0, 'Débutant': 0 };
+      const scores = [];
+
+      data.forEach(r => {
+        levels[r.level]++;
+        scores.push(r.score);
+      });
+
+      // Graphique niveaux
+      new Chart(document.getElementById('levelChart'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(levels),
+          datasets: [{
+            data: Object.values(levels),
+            backgroundColor: ['#2ecc71', '#3498db', '#f39c12', '#e74c3c']
+          }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Répartition des niveaux' } } }
+      });
+
+      // Histogramme des scores
+      const scoreBins = [0,0,0,0,0]; // 0-19, 20-39, ..., 80-100
+      scores.forEach(s => {
+        const bin = Math.min(Math.floor(s / 20), 4);
+        scoreBins[bin]++;
+      });
+
+      new Chart(document.getElementById('scoreChart'), {
+        type: 'bar',
+        data: {
+          labels: ['0-19%', '20-39%', '40-59%', '60-79%', '80-100%'],
+          datasets: [{
+            label: 'Nombre de participants',
+            data: scoreBins,
+            backgroundColor: '#9b59b6'
+          }]
+        },
+        options: { responsive: true, plugins: { title: { display: true, text: 'Distribution des scores' } } }
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      data.forEach(r => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td>${new Date(r.date).toLocaleString('fr-FR')}</td>
+          <td>${r.score}</td>
+          <td>${r.total}</td>
+          <td>${r.level}</td>
+        `;
+      });
+    }
+  </script>
+</body>
+</html>
