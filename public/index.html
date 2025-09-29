@@ -123,6 +123,10 @@
   </div>
 
   <script>
+    let currentQuestion = 0;
+    let score = 0;
+    let userEmail = '';
+    let userDepartment = ''; // ← nouvelle variable
     // Questions du quiz (à personnaliser selon votre contexte)
     const questions = [
       {
@@ -266,7 +270,12 @@
       document.getElementById('result-email').textContent = `Résultat envoyé à : ${userEmail}`;
 
       // Envoi des données au backend
-      sendDataToServer({ email: userEmail, score, total: questions.length });
+      sendDataToServer({ 
+        email: userEmail, 
+        department: userDepartment,
+        score, 
+        total: questions.length 
+      });
     }
 
     async function sendDataToServer(data) {
