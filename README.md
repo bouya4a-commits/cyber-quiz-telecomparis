@@ -1,13 +1,16 @@
-cyber-quiz-Telecomparis/
+## 📁 Structure du projet
+
+
+cyber-quiz-ecole/
 ├── public/
-│   ├── index.html          ← Quiz principal
-│   └── admin.html          ← Tableau de bord admin
-├── server.js               ← Backend (Express)
-├── results.csv             ← Résultats anonymisés (créé automatiquement)
-├── .env.example            ← Exemple de variables d’environnement
-├── .gitignore
-├── package.json
-└── README.md               ← Instructions de déploiement
+│ ├── index.html # Page du quiz
+│ └── admin.html # Tableau de bord admin
+├── server.js # Serveur Express (backend)
+├── results.csv # Résultats anonymisés (généré automatiquement)
+├── package.json # Dépendances et scripts
+├── .env.example # Exemple de variables d'environnement
+├── .gitignore # Fichiers exclus de Git
+└── README.md # Ce fichier
 
 
 
@@ -23,7 +26,7 @@ Pour sensibiliser Télécom Paris avec un quiz interactif, sécurisé et ludique
 3. `npm install`
 4. Copier `.env.example` en `.env`, adapter si besoin
 5. `npm start`
-6. Ouvrer :
+6. Ouvrir :
    - Quiz : http://localhost:3000
    - Admin : http://localhost:3000/admin.html
 
