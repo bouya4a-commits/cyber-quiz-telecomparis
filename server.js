@@ -4,7 +4,6 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcrypt');
-const { createCanvas } = require('canvas'); // Pour le PDF
 
 const app = express();
 const PORT = process.env.PORT || 3000;
