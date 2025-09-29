@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": ["cybersecurite", "quiz", "hacking", "sensibilisation", "formation", "IMT", "Telecom-Paris, "TP"],
+  "keywords": ["cybersecurite", "quiz", "hacking", "sensibilisation", "formation", "IMT", "Telecom-Paris", "TP"],
   "author": "Laurent Rousset",
   "license": "MIT",
   "engines": {
