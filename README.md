@@ -26,8 +26,8 @@ Pour sensibiliser Télécom Paris avec un quiz interactif, sécurisé et ludique
 2. `cd cyber-quiz-telecomparis`
 3. `npm install`
 4. Copier `.env.example` en `.env`, adapter si besoin
-5. `npm start`
-6. `npm install nodemailer`
+5. `npm install nodemailer`
+6. `npm start`
 7. Ouvrir :
    - Quiz : http://localhost:3000
    - Admin : http://localhost:3000/admin.html
