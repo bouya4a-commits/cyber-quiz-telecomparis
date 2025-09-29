@@ -25,7 +25,7 @@ Pour sensibiliser Télécom Paris avec un quiz interactif, sécurisé et ludique
 1. `git clone https://github.com/votre-organisation/cyber-quiz-telecomparis.git`
 2. `cd cyber-quiz-telecomparis`
 3. `npm install`
-4. Copier `.env.example` en `.env`, adapter si besoin
+4. Copier `.env.example` en `.env`et l'adapter au besoin
 5. `npm install nodemailer`
 6. `npm start`
 7. Ouvrir :
