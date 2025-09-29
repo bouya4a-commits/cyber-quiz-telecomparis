@@ -142,4 +142,18 @@ app.get('/api/badge/:level', (req, res) => {
     <body>
       <h1>🏆 Badge Cybersécurité</h1>
       <div class="badge">${emoji}</div>
-      <h2>N
+      <h2>Niveau : ${level}</h2>
+      <p>Ce badge atteste de votre engagement en faveur de la cybersécurité.</p>
+      <button class="btn" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+    </body>
+    </html>
+  `;
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`🎯 Quiz : http://localhost:${PORT}/`);
+  console.log(`🔐 Admin : http://localhost:${PORT}/admin-login.html`);
+});
