@@ -121,7 +121,7 @@ app.get('/api/admin/logo', (req, res) => {
   }
 });
 
-// ========== BADGE SANS PDF (HTML IMPRIMABLE) ==========
+// ========== BADGE AVEC LOGO ==========
 app.get('/api/badge/:level', (req, res) => {
   const { level } = req.params;
   const levels = { 'Expert': '🥇', 'Avancé': '🥈', 'Intermédiaire': '🥉', 'Débutant': '📚' };
@@ -134,15 +134,53 @@ app.get('/api/badge/:level', (req, res) => {
       <meta charset="utf-8">
       <title>Badge Cybersécurité</title>
       <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f9f9f9; }
-        .badge { font-size: 100px; margin: 30px 0; }
-        .btn { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        body { 
+          font-family: Arial, sans-serif; 
+          text-align: center; 
+          padding: 40px; 
+          background: #f9f9f9; 
+          max-width: 800px; 
+          margin: 0 auto;
+        }
+        .header { 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          gap: 20px; 
+          margin-bottom: 30px; 
+        }
+        .logo { 
+          height: 80px; 
+          border-radius: 12px; 
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .badge { 
+          font-size: 100px; 
+          margin: 20px 0; 
+        }
+        .btn { 
+          padding: 12px 24px; 
+          background: #3498db; 
+          color: white; 
+          border: none; 
+          border-radius: 8px; 
+          cursor: pointer; 
+          font-size: 18px;
+          margin-top: 20px;
+        }
+        @media print {
+          .btn { display: none; }
+          body { padding: 20px; }
+        }
       </style>
     </head>
     <body>
       <div class="header">
+        <img class="logo" src="/assets/logo.png" alt="Logo">
+        <div>
           <h1>🏆 Badge Cybersécurité</h1>
           <h2>${level}</h2>
+        </div>
       </div>
       <div class="badge">${emoji}</div>
       <p>Ce badge atteste de votre engagement en faveur de la cybersécurité.</p>
