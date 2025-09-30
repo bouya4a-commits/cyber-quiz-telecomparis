@@ -1,26 +1,137 @@
-<!-- Simple login form -->
-<form id="loginForm">
-  <input type="text" id="username" placeholder="Admin" required>
-  <input type="password" id="password" placeholder="Mot de passe" required>
-  <button type="submit">Connexion</button>
-</form>
-<script>
-  document.getElementById('loginForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: document.getElementById('username').value,
-        password: document.getElementById('password').value
-      })
-    });
-    const data = await res.json();
-    if (data.token) {
-      localStorage.setItem('adminToken', data.token);
-      window.location = 'admin-dashboard.html';
-    } else {
-      alert('Erreur');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🔐 Connexion Admin - Quiz Cybersécurité</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-  };
-</script>
+    body {
+      background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .login-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 450px;
+      overflow: hidden;
+    }
+    .banner {
+      background: #2c3e50;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .banner img {
+      height: 60px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .banner h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    .form {
+      padding: 30px;
+    }
+    .form input {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+    .form input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #2980b9;
+    }
+    .footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="banner">
+      <img src="/assets/logo.png" alt="Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22 viewBox=%220 0 24 24%22 fill=%22%23ffffff%22><path d=%22M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z%22/></svg>'">
+      <h1>Quiz Cybersécurité</h1>
+    </div>
+    <div class="form">
+      <input type="text" id="username" placeholder="Nom d'utilisateur" autocomplete="username" required>
+      <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password" required>
+      <button class="btn" onclick="login()">Se connecter</button>
+    </div>
+    <div class="footer">
+      Interface d'administration sécurisée
+    </div>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      if (!username || !password) {
+        alert('Veuillez remplir tous les champs');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        
+        if (data.token) {
+          localStorage.setItem('adminToken', data.token);
+          window.location = 'admin-dashboard.html';
+        } else {
+          alert('❌ Identifiants incorrects');
+        }
+      } catch (err) {
+        alert('⚠️ Erreur de connexion au serveur');
+        console.error(err);
+      }
+    }
+
+    // Permettre Entrée pour valider
+    document.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>
