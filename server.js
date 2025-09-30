@@ -16,9 +16,12 @@ if (!fs.existsSync(RESULTS_FILE)) {
 }
 
 // Charger la config (si elle existe)
-let config = { admin: null, logo: 'logo.png' };
+let config = { admin: null, schoolName: "École d'ingénieurs", logo: 'logo.png' };
 if (fs.existsSync(CONFIG_FILE)) {
-  config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+  const loaded = JSON.parse(fs.readFileSync(CONFIG_FILE));
+  config = { ...config, ...loaded };
+  // Sauvegarde pour uniformiser
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
 }
 
 app.use(cors());
@@ -37,7 +40,7 @@ app.post('/api/submit-quiz', (req, res) => {
     return res.status(400).json({ error: 'Données invalides.' });
   }
 
-  // Anonymisation partielle : laurent***@telecom-paris.fr
+  // Anonymisation partielle
   const [local, domain] = email.split('@');
   const anonymized = local.length > 6 
     ? `${local.substring(0, 3)}***${local.substring(local.length - 3)}@${domain}`
@@ -112,6 +115,26 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
   }
 });
 
+app.get('/api/admin/config', requireAdmin, (req, res) => {
+  res.json({ 
+    schoolName: config.schoolName || "École d'ingénieurs",
+    logo: config.logo 
+  });
+});
+
+app.post('/api/admin/config', requireAdmin, (req, res) => {
+  const { schoolName } = req.body;
+  if (schoolName && schoolName.trim() !== '') {
+    config.schoolName = schoolName.trim();
+  }
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  res.json({ 
+    success: true, 
+    schoolName: config.schoolName,
+    logo: config.logo 
+  });
+});
+
 app.get('/api/admin/logo', (req, res) => {
   const logoPath = path.join(__dirname, 'assets', config.logo);
   if (fs.existsSync(logoPath)) {
@@ -121,11 +144,12 @@ app.get('/api/admin/logo', (req, res) => {
   }
 });
 
-// ========== BADGE AVEC LOGO ==========
+// ========== BADGE AVEC LOGO ET NOM ÉTABLISSEMENT ==========
 app.get('/api/badge/:level', (req, res) => {
   const { level } = req.params;
   const levels = { 'Expert': '🥇', 'Avancé': '🥈', 'Intermédiaire': '🥉', 'Débutant': '📚' };
   const emoji = levels[level] || '🏅';
+  const school = config.schoolName || "École d'ingénieurs";
 
   const html = `
     <!DOCTYPE html>
@@ -158,6 +182,11 @@ app.get('/api/badge/:level', (req, res) => {
           font-size: 100px; 
           margin: 20px 0; 
         }
+        .school { 
+          font-size: 20px; 
+          color: #2c3e50; 
+          margin-top: 10px;
+        }
         .btn { 
           padding: 12px 24px; 
           background: #3498db; 
@@ -179,10 +208,11 @@ app.get('/api/badge/:level', (req, res) => {
         <img class="logo" src="/assets/logo.png" alt="Logo">
         <div>
           <h1>🏆 Badge Cybersécurité</h1>
-          <h2>${level}</h2>
+          <div class="school">${school}</div>
         </div>
       </div>
       <div class="badge">${emoji}</div>
+      <h2>Niveau : ${level}</h2>
       <p>Ce badge atteste de votre engagement en faveur de la cybersécurité.</p>
       <button class="btn" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
     </body>
@@ -190,25 +220,6 @@ app.get('/api/badge/:level', (req, res) => {
   `;
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
-});
-// ========== UPLOAD LOGO & NOM ÉTABLISSEMENT ==========
-app.post('/api/admin/config', requireAdmin, (req, res) => {
-  const { schoolName } = req.body;
-  let logoFilename = config.logo;
-
-  // Sauvegarde du nom de l'école
-  if (schoolName && schoolName.trim() !== '') {
-    config.schoolName = schoolName.trim();
-  }
-
-  // Écriture de la config
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-  res.json({ success: true, schoolName: config.schoolName, logo: logoFilename });
-});
-
-// Route pour obtenir la config
-app.get('/api/admin/config', requireAdmin, (req, res) => {
-  res.json({ schoolName: config.schoolName || 'École d\'ingénieurs', logo: config.logo });
 });
 
 app.listen(PORT, () => {
