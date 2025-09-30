@@ -292,7 +292,11 @@
 
       document.getElementById('badge').textContent = badge;
       document.getElementById('result-message').textContent = message;
-      document.getElementById('result-email').textContent = `Résultat pour : ${userEmail}`;
+      const percent = Math.round((score / questions.length) * 100);
+      document.getElementById('result-email').innerHTML = `
+        Résultat pour : <strong>${userEmail}</strong><br>
+        Score : <strong>${percent}%</strong> (${score}/${questions.length})
+      `;
 
       sendDataToServer({ email: userEmail, department: userDepartment, score, total: questions.length });
     }
