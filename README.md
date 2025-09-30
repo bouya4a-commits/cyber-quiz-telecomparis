@@ -16,7 +16,7 @@ cyber-quiz-telecomparis/
 ├── package.json               ← Dépendances et scripts
 ├── .gitignore                 ← Fichiers exclus de Git
 ├── .env.example               ← Exemple de variables d'environnement
-└── README.md                  ←  Ce fichier
+└── README.md                  ← Ce fichier
 
 ```
 
