@@ -5,17 +5,18 @@
 
 cyber-quiz-telecomparis/
 ├── public/
-│   ├── index.html          ← Quiz utilisateur
-│   └── admin.html          ← Interface admin (protégée)
+│   ├── index.html             ← Quiz utilisateur
+│   ├── admin-login.html       ← Login admin
+│   └── admin-dashboard.html   ← Interface admin (statistiques)
 ├── assets/
-│   └── logo.png            ← Logo personnalisable
-├── server.js               ← Backend avec routes sécurisées
-├── config.json             ← Config: logo, credentials admin
-├── results.csv             ← Résultats (email partiellement anonymisé)
-├── package.json            ← Dépendances et scripts
-├── .gitignore              ← Fichiers exclus de Git
-├── .env.example            ← Exemple de variables d'environnement
-└── README.md               ←  Ce fichier
+│   └── logo.png               ← Logo personnalisable
+├── server.js                  ← Backend avec routes sécurisées
+├── config.json                ← Config: logo, credentials admin
+├── results.csv                ← Résultats (email partiellement anonymisé)
+├── package.json               ← Dépendances et scripts
+├── .gitignore                 ← Fichiers exclus de Git
+├── .env.example               ← Exemple de variables d'environnement
+└── README.md                  ←  Ce fichier
 
 ```
 
