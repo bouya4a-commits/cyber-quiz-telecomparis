@@ -191,6 +191,25 @@ app.get('/api/badge/:level', (req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
 });
+// ========== UPLOAD LOGO & NOM ÉTABLISSEMENT ==========
+app.post('/api/admin/config', requireAdmin, (req, res) => {
+  const { schoolName } = req.body;
+  let logoFilename = config.logo;
+
+  // Sauvegarde du nom de l'école
+  if (schoolName && schoolName.trim() !== '') {
+    config.schoolName = schoolName.trim();
+  }
+
+  // Écriture de la config
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+  res.json({ success: true, schoolName: config.schoolName, logo: logoFilename });
+});
+
+// Route pour obtenir la config
+app.get('/api/admin/config', requireAdmin, (req, res) => {
+  res.json({ schoolName: config.schoolName || 'École d\'ingénieurs', logo: config.logo });
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
