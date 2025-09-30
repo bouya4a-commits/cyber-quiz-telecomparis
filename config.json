@@ -1,0 +1,5 @@
+{
+  "admin": { "username": "admin", "passwordHash": "..." },
+  "schoolName": "Télécom Paris",
+  "logo": "logo.png"
+}
