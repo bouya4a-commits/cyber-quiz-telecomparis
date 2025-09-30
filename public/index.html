@@ -143,30 +143,22 @@
   <div class="container" id="email-screen">
     <h1>🔐 Quiz Cybersécurité</h1>
     
-    <!-- 🔸 LOGO ICI 🔸 -->
+    <!-- LOGO -->
     <img class="logo" src="/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
 
     <p>Veuillez entrer vos informations professionnelles :</p>
     <input type="email" id="user-email" placeholder="prenom.nom@telecom-paris.fr" required />
     <select id="user-department" required>
       <option value="">-- Sélectionnez votre département / équipe --</option>
-      <option value="Direction TP">Direction Télécom Paris</option>
-      <option value="Dir cab">Direction de cabinet</option>
-      <option value="Comelec">COMELEC</option>
-      <option value="Ids">IDS</option>
-      <option value="Infres">INFRES</option>
-      <option value="Ses">SES</option>
-      <option value="Dir RCH">Direction de la Recherche</option>
-      <option value="Direction du dvpt et des partenariats">Direction du dvpt et des partenariats</option>
-      <option value="DSI">Direction des systèmes d'information</option>
-      <option value="DRH">Direction des ressources humaines</option>
-      <option value="DRI">Direction relations internationales</option>
-      <option value="DE">Direction enseignement</option>
-      <option value="DG IMT">DG IMT</option>
-      <option value="Pôle inno et entrepreneuriat">Pôle innovation et entrepreneuriat</option>
-      <option value="Service immo et log">Service Immo et Log</option>
-      <option value="Service finances">Service finances</option>
-      <option value="TPExED">TPExED</option>
+      <option value="Direction">Direction</option>
+      <option value="Administration">Administration</option>
+      <option value="Enseignement">Enseignement</option>
+      <option value="Recherche - LTCI">Recherche - LTCI</option>
+      <option value="Recherche - INFRES">Recherche - INFRES</option>
+      <option value="Recherche - S2A">Recherche - S2A</option>
+      <option value="Recherche - Autre">Recherche - Autre</option>
+      <option value="IT / DSI">IT / DSI</option>
+      <option value="Bibliothèque">Bibliothèque</option>
       <option value="Autre">Autre</option>
     </select>
     <button onclick="startQuiz()">Commencer le quiz</button>
@@ -201,7 +193,6 @@
       { q: "Qui contacter en cas de cyberattaque ?", a: ["Personne", "Un ami", "Le service informatique", "Google"], correct: 2 }
     ];
 
-    // Variables globales — déclarées UNE SEULE FOIS
     let currentQuestion = 0;
     let score = 0;
     let userEmail = '';
@@ -283,7 +274,7 @@
       document.getElementById('quiz-screen').style.display = 'none';
       document.getElementById('result-screen').style.display = 'block';
 
-      const percent = (score / questions.length) * 100;
+      const percent = Math.round((score / questions.length) * 100);
       let badge = '📚', message = '';
       if (percent >= 90) { badge = '🥇'; message = "Excellent ! Vous êtes un champion de la cybersécurité !"; }
       else if (percent >= 70) { badge = '🥈'; message = "Très bon ! Vous maîtrisez les bases essentielles."; }
@@ -292,7 +283,6 @@
 
       document.getElementById('badge').textContent = badge;
       document.getElementById('result-message').textContent = message;
-      const percent = Math.round((score / questions.length) * 100);
       document.getElementById('result-email').innerHTML = `
         Résultat pour : <strong>${userEmail}</strong><br>
         Score : <strong>${percent}%</strong> (${score}/${questions.length})
