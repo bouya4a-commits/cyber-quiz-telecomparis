@@ -80,7 +80,17 @@
       <h1>Tableau de bord Admin</h1>
       <button class="btn logout" onclick="logout()">Déconnexion</button>
     </header>
-
+    
+  <div class="card">
+    <h2>🏫 Configuration</h2>
+    <p><strong>Établissement :</strong> <span id="school-name">Chargement...</span></p>
+    <input type="text" id="school-input" placeholder="Nom de l'établissement" style="width:100%; padding:10px; margin:10px 0;">
+    <button class="btn" onclick="updateConfig()">Mettre à jour</button>
+    <p style="font-size:14px; color:#666; margin-top:10px;">
+    Pour changer le logo : déposez un fichier <code>logo.png</code> dans le dossier <code>assets/</code> du serveur.
+    </p>
+  </div>
+    
     <div class="card">
       <h2>📈 Statistiques globales</h2>
       <p><strong>Participants :</strong> <span id="total"></span></p>
@@ -128,6 +138,23 @@
         document.getElementById('total').textContent = data.totalParticipants;
         document.getElementById('avg').textContent = data.avgScore;
 
+    api('/api/admin/config').then(res => res.json()).then(cfg => {
+      document.getElementById('school-name').textContent = cfg.schoolName;
+      document.getElementById('school-input').value = cfg.schoolName;
+    });
+
+    function updateConfig() {
+      const name = document.getElementById('school-input').value;
+      fetch('/api/admin/config', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schoolName: name })
+      }).then(() => {
+        document.getElementById('school-name').textContent = name;
+        alert('✅ Configuration mise à jour');
+      });
+    }
+        
         // Graphique départements
         const deptLabels = Object.keys(data.byDept);
         const deptValues = Object.values(data.byDept);
