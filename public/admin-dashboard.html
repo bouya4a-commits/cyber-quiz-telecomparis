@@ -26,6 +26,7 @@
     header img {
       height: 50px;
       margin-right: 15px;
+      border-radius: 8px;
     }
     h1 {
       color: #2c3e50;
@@ -71,6 +72,19 @@
     .logout:hover {
       background: #c0392b;
     }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    code {
+      background: #f1f1f1;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -80,21 +94,21 @@
       <h1>Tableau de bord Admin</h1>
       <button class="btn logout" onclick="logout()">Déconnexion</button>
     </header>
-    
-  <div class="card">
-    <h2>🏫 Configuration</h2>
-    <p><strong>Établissement :</strong> <span id="school-name">Chargement...</span></p>
-    <input type="text" id="school-input" placeholder="Nom de l'établissement" style="width:100%; padding:10px; margin:10px 0;">
-    <button class="btn" onclick="updateConfig()">Mettre à jour</button>
-    <p style="font-size:14px; color:#666; margin-top:10px;">
-    Pour changer le logo : déposez un fichier <code>logo.png</code> dans le dossier <code>assets/</code> du serveur.
-    </p>
-  </div>
-    
+
     <div class="card">
       <h2>📈 Statistiques globales</h2>
       <p><strong>Participants :</strong> <span id="total"></span></p>
       <p><strong>Score moyen :</strong> <span id="avg"></span>%</p>
+    </div>
+
+    <div class="card">
+      <h2>🏫 Configuration</h2>
+      <p><strong>Établissement :</strong> <span id="school-name">Chargement...</span></p>
+      <input type="text" id="school-input" placeholder="Nom de l'établissement">
+      <button class="btn" onclick="updateConfig()">Mettre à jour</button>
+      <p style="font-size:14px; color:#666; margin-top:10px;">
+        Pour changer le logo : déposez un fichier <code>logo.png</code> dans le dossier <code>assets/</code> du serveur.
+      </p>
     </div>
 
     <div class="card">
@@ -126,21 +140,55 @@
       window.location = 'admin-login.html';
     }
 
-    // Ajouter le token aux requêtes
     const api = (path) => fetch(path, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
 
     // Charger les stats
-    api('/api/admin/stats')
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById('total').textContent = data.totalParticipants;
-        document.getElementById('avg').textContent = data.avgScore;
+    Promise.all([
+      api('/api/admin/stats').then(r => r.json()),
+      api('/api/admin/config').then(r => r.json())
+    ]).then(([stats, config]) => {
+      // Stats globales
+      document.getElementById('total').textContent = stats.totalParticipants;
+      document.getElementById('avg').textContent = stats.avgScore;
 
-    api('/api/admin/config').then(res => res.json()).then(cfg => {
-      document.getElementById('school-name').textContent = cfg.schoolName;
-      document.getElementById('school-input').value = cfg.schoolName;
+      // Configuration
+      document.getElementById('school-name').textContent = config.schoolName;
+      document.getElementById('school-input').value = config.schoolName;
+
+      // Graphique départements
+      const deptLabels = Object.keys(stats.byDept);
+      const deptValues = Object.values(stats.byDept);
+      new Chart(document.getElementById('deptChart'), {
+        type: 'bar',
+         {
+          labels: deptLabels,
+          datasets: [{
+            label: 'Participants',
+             deptValues,
+            backgroundColor: '#3498db'
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } } }
+      });
+
+      // Liste des participants
+      const tbody = document.getElementById('participants');
+      stats.raw.slice(-10).reverse().forEach(r => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td>${new Date(r.date).toLocaleString('fr-FR')}</td>
+          <td>${r.email}</td>
+          <td>${r.department}</td>
+          <td>${r.level}</td>
+          <td><a class="btn" href="/api/badge/${r.level}" target="_blank">PDF</a></td>
+        `;
+      });
+    }).catch(err => {
+      alert('Erreur : connexion perdue');
+      localStorage.removeItem('adminToken');
+      window.location = 'admin-login.html';
     });
 
     function updateConfig() {
@@ -154,41 +202,6 @@
         alert('✅ Configuration mise à jour');
       });
     }
-        
-        // Graphique départements
-        const deptLabels = Object.keys(data.byDept);
-        const deptValues = Object.values(data.byDept);
-        new Chart(document.getElementById('deptChart'), {
-          type: 'bar',
-          data: {
-            labels: deptLabels,
-            datasets: [{
-              label: 'Participants',
-              data: deptValues,
-              backgroundColor: '#3498db'
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-
-        // Liste des participants
-        const tbody = document.getElementById('participants');
-        data.raw.slice(-10).reverse().forEach(r => {
-          const row = tbody.insertRow();
-          row.innerHTML = `
-            <td>${new Date(r.date).toLocaleString('fr-FR')}</td>
-            <td>${r.email}</td>
-            <td>${r.department}</td>
-            <td>${r.level}</td>
-            <td><a class="btn" href="/api/badge/${r.level}" target="_blank">PDF</a></td>
-          `;
-        });
-      })
-      .catch(err => {
-        alert('Erreur : connexion perdue');
-        localStorage.removeItem('adminToken');
-        window.location = 'admin-login.html';
-      });
 
     function logout() {
       localStorage.removeItem('adminToken');
