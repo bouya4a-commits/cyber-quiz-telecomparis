@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>📊 Admin Dashboard</title>
+  <title>📊 Admin Dashboard - Quiz Cybersécurité & RGPD</title>
   <style>
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
@@ -23,10 +23,46 @@
       color: white; 
       padding: 20px; 
       text-align: center; 
+      position: relative;
     }
-    .stats { 
-      padding: 20px; 
-      border-bottom: 1px solid #eee; 
+    .export-btn {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .export-btn:hover {
+      background: #c0392b;
+    }
+    .tabs {
+      display: flex;
+      background: #ecf0f1;
+    }
+    .tab {
+      padding: 15px 25px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #7f8c8d;
+      border-bottom: 3px solid transparent;
+    }
+    .tab.active {
+      color: #2c3e50;
+      border-bottom: 3px solid #3498db;
+      background: white;
+    }
+    .tab-content {
+      display: none;
+      padding: 20px;
+    }
+    .tab-content.active {
+      display: block;
     }
     h2 {
       color: #2c3e50;
@@ -69,11 +105,6 @@
       font-weight: bold;
       font-size: 14px;
     }
-    .error { 
-      color: #e74c3c; 
-      padding: 20px; 
-      text-align: center; 
-    }
     .question-item {
       background: #fef6f6;
       padding: 12px;
@@ -98,49 +129,116 @@
       font-size: 16px;
       width: 300px;
     }
+    .stats-summary {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 30px;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>📊 Tableau de bord - Quiz Cybersécurité</h1>
+      <h1>📊 Tableau de bord - Quiz Cybersécurité & RGPD</h1>
+      <button class="export-btn" onclick="exportCSV()">📥 Exporter CSV</button>
     </header>
 
-    <div class="stats">
-      <h2>📈 Statistiques globales</h2>
-      <p><strong>Nombre total de participants :</strong> <span id="total-count">Chargement...</span></p>
+    <div class="tabs">
+      <div class="tab active" data-tab="cyber">Cybersécurité</div>
+      <div class="tab" data-tab="rgpd">RGPD</div>
     </div>
 
-    <div class="stats">
-      <h2>🏢 Statistiques par département</h2>
-      <div id="dept-bars">Chargement...</div>
+    <!-- Onglet Cybersécurité -->
+    <div id="cyber-tab" class="tab-content active">
+      <div class="stats-summary">
+        <div class="stat-item">
+          <div>Participants</div>
+          <div class="stat-value" id="cyber-count">0</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🏢 Par département</h2>
+        <div id="cyber-dept-bars">Chargement...</div>
+      </div>
+
+      <div class="section">
+        <h2>❌ Top 5 des questions les plus ratées</h2>
+        <div id="cyber-top-questions">Chargement...</div>
+      </div>
+
+      <div class="section">
+        <h2>👥 Résultats des participants</h2>
+        <select id="cyber-dept-filter" class="filter" onchange="filterResults('cyber')">
+          <option value="">Tous les départements</option>
+        </select>
+        <table>
+          <thead>
+            <tr>
+              <th>Date & Heure</th>
+              <th>Email (anonymisé)</th>
+              <th>Département</th>
+              <th>Score</th>
+              <th>Niveau</th>
+            </tr>
+          </thead>
+          <tbody id="cyber-results-body">
+            <tr><td colspan="5" style="text-align:center;">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="stats">
-      <h2>❌ Top 5 des questions les plus ratées</h2>
-      <div id="top-questions">Chargement...</div>
-    </div>
+    <!-- Onglet RGPD -->
+    <div id="rgpd-tab" class="tab-content">
+      <div class="stats-summary">
+        <div class="stat-item">
+          <div>Participants</div>
+          <div class="stat-value" id="rgpd-count">0</div>
+        </div>
+      </div>
 
-    <div class="stats">
-      <h2>👥 Résultats des participants</h2>
-      <select id="dept-filter" class="filter" onchange="filterResults()">
-        <option value="">Tous les départements</option>
-        <!-- Rempli dynamiquement -->
-      </select>
-      <table>
-        <thead>
-          <tr>
-            <th>Date & Heure</th>
-            <th>Email (anonymisé)</th>
-            <th>Département</th>
-            <th>Score</th>
-            <th>Niveau</th>
-          </tr>
-        </thead>
-        <tbody id="results-body">
-          <tr><td colspan="5" style="text-align:center;">Chargement...</td></tr>
-        </tbody>
-      </table>
+      <div class="section">
+        <h2>🏢 Par département</h2>
+        <div id="rgpd-dept-bars">Chargement...</div>
+      </div>
+
+      <div class="section">
+        <h2>❌ Top 5 des questions les plus ratées</h2>
+        <div id="rgpd-top-questions">Chargement...</div>
+      </div>
+
+      <div class="section">
+        <h2>👥 Résultats des participants</h2>
+        <select id="rgpd-dept-filter" class="filter" onchange="filterResults('rgpd')">
+          <option value="">Tous les départements</option>
+        </select>
+        <table>
+          <thead>
+            <tr>
+              <th>Date & Heure</th>
+              <th>Email (anonymisé)</th>
+              <th>Département</th>
+              <th>Score</th>
+              <th>Niveau</th>
+            </tr>
+          </thead>
+          <tbody id="rgpd-results-body">
+            <tr><td colspan="5" style="text-align:center;">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -151,6 +249,23 @@
     }
 
     let allData = null;
+    const COLORS = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e'];
+
+    // Onglets
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+
+    // Export CSV
+    function exportCSV() {
+      window.location.href = '/api/export-csv';
+    }
 
     function formatDate(dateString) {
       const date = new Date(dateString);
@@ -163,43 +278,37 @@
       });
     }
 
-    const COLORS = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e'];
-
+    // Charger les données
     fetch('/api/stats')
       .then(response => response.json())
       .then(data => {
         allData = data;
-        renderStats();
+        renderCyberStats();
+        renderRgpdStats();
       })
       .catch(error => {
         console.error('Erreur:', error);
-        document.getElementById('total-count').textContent = 'Erreur';
-        document.getElementById('dept-bars').innerHTML = '<p class="error">❌ Impossible de charger les données.</p>';
-        document.getElementById('top-questions').innerHTML = '<p class="error">Erreur de chargement.</p>';
-        document.getElementById('results-body').innerHTML = '<tr><td colspan="5" class="error">Erreur de chargement</td></tr>';
+        alert('Erreur chargement des données');
       });
 
-    function renderStats() {
-      const { participants, questionStats, deptStats } = allData;
-      document.getElementById('total-count').textContent = participants.length;
+    // === CYBERSÉCURITÉ ===
+    function renderCyberStats() {
+      const { cyber, cyberStats } = allData;
+      document.getElementById('cyber-count').textContent = cyberStats.count;
 
-      // === Départements ===
-      const deptEntries = Object.entries(deptStats).map(([dept, stats]) => ({
-        dept,
-        count: stats.count,
-        avgScore: ((stats.totalScore / stats.count) * 100).toFixed(1)
-      })).sort((a, b) => b.count - a.count);
-
-      const maxCount = Math.max(...deptEntries.map(d => d.count), 1);
+      // Départements
+      const cyberDepts = Object.entries(cyberStats.deptStats || {}).map(([dept, count]) => ({ dept, count }))
+        .sort((a, b) => b.count - a.count);
+      const maxCount = Math.max(...cyberDepts.map(d => d.count), 1);
       let deptHtml = '';
-      deptEntries.forEach((entry, i) => {
+      cyberDepts.forEach((entry, i) => {
         const width = (entry.count / maxCount) * 100;
         const color = COLORS[i % COLORS.length];
         deptHtml += `
           <div style="margin-bottom: 15px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
               <strong>${entry.dept}</strong>
-              <span>${entry.count} tests • ${entry.avgScore}%</span>
+              <span>${entry.count} participants</span>
             </div>
             <div class="bar-container">
               <div class="bar-fill" style="width: ${width}%; background-color: ${color};">
@@ -209,29 +318,31 @@
           </div>
         `;
       });
-      document.getElementById('dept-bars').innerHTML = deptHtml || '<p>Aucun département enregistré.</p>';
+      document.getElementById('cyber-dept-bars').innerHTML = deptHtml || '<p>Aucun participant</p>';
 
-      // === Top questions ===
+      // Top questions
       let questionsHtml = '';
-      if (questionStats.length > 0) {
-        questionStats.forEach(q => {
-          questionsHtml += `
-            <div class="question-item">
-              <div class="question-text">${q.question}</div>
-              <div class="question-stats">
-                ❌ ${q.errors} erreurs sur ${q.total} tentatives • Taux d'erreur : ${q.errorRate}%
+      if (cyberStats.topQuestions && cyberStats.topQuestions.length > 0) {
+        cyberStats.topQuestions.forEach(q => {
+          if (q.total > 0) {
+            questionsHtml += `
+              <div class="question-item">
+                <div class="question-text">${q.question}</div>
+                <div class="question-stats">
+                  ❌ ${q.errors} erreurs sur ${q.total} tentatives • Taux d'erreur : ${q.errorRate}%
+                </div>
               </div>
-            </div>
-          `;
+            `;
+          }
         });
       } else {
-        questionsHtml = '<p>Aucune donnée suffisante pour les questions.</p>';
+        questionsHtml = '<p>Aucune donnée suffisante.</p>';
       }
-      document.getElementById('top-questions').innerHTML = questionsHtml;
+      document.getElementById('cyber-top-questions').innerHTML = questionsHtml;
 
-      // === Menu déroulant départements ===
-      const filterSelect = document.getElementById('dept-filter');
-      const uniqueDepts = [...new Set(participants.map(p => p.department))];
+      // Menu déroulant départements
+      const filterSelect = document.getElementById('cyber-dept-filter');
+      const uniqueDepts = [...new Set(cyber.map(p => p.department))];
       uniqueDepts.sort();
       uniqueDepts.forEach(dept => {
         const option = document.createElement('option');
@@ -240,20 +351,83 @@
         filterSelect.appendChild(option);
       });
 
-      // Afficher tous les résultats initialement
-      displayResults(participants);
+      displayResults('cyber', cyber);
     }
 
-    function filterResults() {
-      const dept = document.getElementById('dept-filter').value;
+    // === RGPD ===
+    function renderRgpdStats() {
+      const { rgpd, rgpdStats } = allData;
+      document.getElementById('rgpd-count').textContent = rgpdStats.count;
+
+      // Départements
+      const rgpdDepts = Object.entries(rgpdStats.deptStats || {}).map(([dept, count]) => ({ dept, count }))
+        .sort((a, b) => b.count - a.count);
+      const maxCount = Math.max(...rgpdDepts.map(d => d.count), 1);
+      let deptHtml = '';
+      rgpdDepts.forEach((entry, i) => {
+        const width = (entry.count / maxCount) * 100;
+        const color = COLORS[i % COLORS.length];
+        deptHtml += `
+          <div style="margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <strong>${entry.dept}</strong>
+              <span>${entry.count} participants</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar-fill" style="width: ${width}%; background-color: ${color};">
+                ${entry.count}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById('rgpd-dept-bars').innerHTML = deptHtml || '<p>Aucun participant</p>';
+
+      // Top questions
+      let questionsHtml = '';
+      if (rgpdStats.topQuestions && rgpdStats.topQuestions.length > 0) {
+        rgpdStats.topQuestions.forEach(q => {
+          if (q.total > 0) {
+            questionsHtml += `
+              <div class="question-item">
+                <div class="question-text">${q.question}</div>
+                <div class="question-stats">
+                  ❌ ${q.errors} erreurs sur ${q.total} tentatives • Taux d'erreur : ${q.errorRate}%
+                </div>
+              </div>
+            `;
+          }
+        });
+      } else {
+        questionsHtml = '<p>Aucune donnée suffisante.</p>';
+      }
+      document.getElementById('rgpd-top-questions').innerHTML = questionsHtml;
+
+      // Menu déroulant départements
+      const filterSelect = document.getElementById('rgpd-dept-filter');
+      const uniqueDepts = [...new Set(rgpd.map(p => p.department))];
+      uniqueDepts.sort();
+      uniqueDepts.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        filterSelect.appendChild(option);
+      });
+
+      displayResults('rgpd', rgpd);
+    }
+
+    function filterResults(quizType) {
+      const dept = document.getElementById(`${quizType}-dept-filter`).value;
+      const list = quizType === 'cyber' ? allData.cyber : allData.rgpd;
       const filtered = dept 
-        ? allData.participants.filter(p => p.department === dept)
-        : allData.participants;
-      displayResults(filtered);
+        ? list.filter(p => p.department === dept)
+        : list;
+      displayResults(quizType, filtered);
     }
 
-    function displayResults(list) {
-      const tbody = document.getElementById('results-body');
+    function displayResults(quizType, list) {
+      const tbody = document.getElementById(`${quizType}-results-body`);
       tbody.innerHTML = '';
       if (list.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun résultat</td></tr>';
