@@ -191,17 +191,41 @@ app.get('/api/stats', (req, res) => {
   }
 });
 
-// Export CSV
+// Export CSV filtré
 app.get('/api/export-csv', (req, res) => {
   try {
+    const { quizType, filename = 'quiz-results.csv' } = req.query;
     const data = fs.readFileSync(RESULTS_FILE, 'utf8');
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=quiz-results.csv');
-    res.send(data);
+    const lines = data.split('\n');
+    
+    if (!quizType || quizType === 'all') {
+      // Export complet
+      sendCsv(res, data, filename);
+      return;
+    }
+
+    // Filtrer par type de quiz
+    const header = lines[0];
+    const filteredLines = [header];
+    
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].startsWith(quizType + ',')) {
+        filteredLines.push(lines[i]);
+      }
+    }
+    
+    sendCsv(res, filteredLines.join('\n'), filename);
   } catch (err) {
+    console.error('Erreur export CSV:', err);
     res.status(500).json({ error: 'Erreur export' });
   }
 });
+
+function sendCsv(res, csvData, filename) {
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csvData);
+}
 
 // Auth admin sécurisée
 app.post('/api/admin/login', (req, res) => {
