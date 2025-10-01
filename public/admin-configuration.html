@@ -4,11 +4,34 @@
   <meta charset="utf-8">
   <title>⚙️ Configuration Admin</title>
   <style>
-    body { font-family: Arial; background: #f5f7fa; padding: 20px; }
-    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-    .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-    h2 { color: #3498db; margin-bottom: 15px; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: #f5f7fa; 
+      padding: 20px; 
+      margin: 0; 
+    }
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      background: white; 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    }
+    h1 { 
+      color: #2c3e50; 
+      text-align: center; 
+      margin-bottom: 30px; 
+    }
+    .section { 
+      margin-bottom: 30px; 
+      padding-bottom: 20px; 
+      border-bottom: 1px solid #eee; 
+    }
+    h2 { 
+      color: #3498db; 
+      margin-bottom: 15px; 
+    }
     input, select, button, textarea {
       width: 100%;
       padding: 10px;
@@ -17,77 +40,158 @@
       border-radius: 6px;
       font-size: 16px;
     }
-    button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background: #2980b9; }
-    .danger { background: #e74c3c; }
-    .danger:hover { background: #c0392b; }
+    button { 
+      background: #3498db; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold; 
+      padding: 8px 16px;
+      width: auto;
+      margin-left: 10px;
+    }
+    button:hover { 
+      opacity: 0.9; 
+    }
+    .danger { 
+      background: #e74c3c !important; 
+    }
+    .danger-rgpd { 
+      background: #ff9f9f !important; 
+      color: #c0392b !important;
+    }
     .question-item {
       background: #f8f9fa;
       padding: 15px;
       margin: 10px 0;
       border-radius: 8px;
-      border-left: 3px solid #3498db;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .question-content {
+      flex: 1;
+      margin-right: 15px;
+    }
+    .question-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .form-group { 
+      margin-bottom: 15px; 
+    }
+    label { 
+      display: block; 
+      margin-bottom: 5px; 
+      font-weight: bold; 
+    }
+    .edit-form {
+      background: #e8f4fc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #ecf0f1;
+      border: 1px solid #bdc3c7;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      margin-right: 5px;
+    }
+    .tab.active {
+      background: white;
+      border-bottom: 2px solid #3498db;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>⚙️ Configuration Admin</h1>
 
+    <!-- Onglets -->
+    <div class="tabs">
+      <div class="tab active" data-tab="questions">Questions</div>
+      <div class="tab" data-tab="domains">Domaines email</div>
+      <div class="tab" data-tab="departments">Départements</div>
+      <div class="tab" data-tab="reset">Réinitialisation</div>
+    </div>
+
     <!-- Gestion des questions -->
-    <div class="section">
-      <h2>📝 Gestion des questions</h2>
-      <div>
-        <label>Quiz :</label>
-        <select id="quiz-type-config">
-          <option value="cyber">Cybersécurité</option>
-          <option value="rgpd">RGPD</option>
-        </select>
+    <div id="questions-tab" class="tab-content active">
+      <div class="section">
+        <h2>📝 Ajouter une nouvelle question</h2>
+        <div>
+          <label>Quiz :</label>
+          <select id="quiz-type-config">
+            <option value="cyber">Cybersécurité</option>
+            <option value="rgpd">RGPD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Question :</label>
+          <textarea id="new-question" placeholder="Entrez la question"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Réponses (une par ligne) :</label>
+          <textarea id="new-answers" placeholder="Réponse 1&#10;Réponse 2&#10;Réponse 3&#10;Réponse 4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Réponse correcte (indice de 1 à 4, ou 0 pour 'Toutes les réponses') :</label>
+          <input type="number" id="correct-answer" min="0" max="4" placeholder="0">
+        </div>
+        <button onclick="addQuestion()">➕ Ajouter une question</button>
       </div>
-      <div class="form-group">
-        <label>Question :</label>
-        <textarea id="new-question" placeholder="Entrez la question"></textarea>
+
+      <div class="section">
+        <h2>✏️ Questions existantes</h2>
+        <div id="questions-list"></div>
       </div>
-      <div class="form-group">
-        <label>Réponses (une par ligne) :</label>
-        <textarea id="new-answers" placeholder="Réponse 1&#10;Réponse 2&#10;Réponse 3"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Réponse correcte (indice à partir de 0) :</label>
-        <input type="number" id="correct-answer" min="0" placeholder="0">
-      </div>
-      <button onclick="addQuestion()">➕ Ajouter une question</button>
-      <div id="questions-list" style="margin-top: 20px;"></div>
     </div>
 
     <!-- Domaines email -->
-    <div class="section">
-      <h2>📧 Domaines email autorisés</h2>
-      <p>Ajoutez jusqu'à 5 domaines (ex: telecom-paris.fr, imt.fr)</p>
-      <div id="email-domains">
-        <input type="text" placeholder="Domaine 1" id="domain1">
-        <input type="text" placeholder="Domaine 2" id="domain2">
-        <input type="text" placeholder="Domaine 3" id="domain3">
-        <input type="text" placeholder="Domaine 4" id="domain4">
-        <input type="text" placeholder="Domaine 5" id="domain5">
+    <div id="domains-tab" class="tab-content">
+      <div class="section">
+        <h2>📧 Domaines email autorisés</h2>
+        <p>Ajoutez jusqu'à 5 domaines (ex: telecom-paris.fr, imt.fr)</p>
+        <div id="email-domains">
+          <input type="text" placeholder="Domaine 1" id="domain1">
+          <input type="text" placeholder="Domaine 2" id="domain2">
+          <input type="text" placeholder="Domaine 3" id="domain3">
+          <input type="text" placeholder="Domaine 4" id="domain4">
+          <input type="text" placeholder="Domaine 5" id="domain5">
+        </div>
+        <button onclick="saveEmailDomains()">💾 Sauvegarder les domaines</button>
       </div>
-      <button onclick="saveEmailDomains()">💾 Sauvegarder les domaines</button>
     </div>
 
     <!-- Départements -->
-    <div class="section">
-      <h2>🏢 Gestion des départements</h2>
-      <input type="text" id="new-department" placeholder="Nouveau département">
-      <button onclick="addDepartment()">➕ Ajouter</button>
-      <div id="departments-list" style="margin-top: 15px;"></div>
+    <div id="departments-tab" class="tab-content">
+      <div class="section">
+        <h2>🏢 Gestion des départements</h2>
+        <input type="text" id="new-department" placeholder="Nouveau département">
+        <button onclick="addDepartment()">➕ Ajouter</button>
+        <div id="departments-list" style="margin-top: 15px;"></div>
+      </div>
     </div>
 
     <!-- Reset stats -->
-    <div class="section">
-      <h2>⚠️ Réinitialisation</h2>
-      <button class="danger" onclick="resetStats()">🗑️ Réinitialiser toutes les statistiques</button>
+    <div id="reset-tab" class="tab-content">
+      <div class="section">
+        <h2>⚠️ Réinitialisation</h2>
+        <button class="danger" onclick="resetStats()">🗑️ Réinitialiser toutes les statistiques</button>
+      </div>
     </div>
   </div>
 
@@ -96,6 +200,17 @@
       alert('Accès réservé à l\'administrateur');
       window.location = 'admin-login.html';
     }
+
+    // Onglets
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        const tabId = tab.getAttribute('data-tab');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
 
     // Charger la configuration au démarrage
     window.onload = function() {
@@ -109,24 +224,63 @@
       fetch('/api/config/questions')
         .then(r => r.json())
         .then(data => {
-          let html = '<h3>Questions existantes :</h3>';
+          let cyberHtml = '<h3>Cybersécurité (1-20) :</h3>';
           (data.cyber || []).forEach((q, i) => {
-            html += `<div class="question-item">Cyber ${i}: ${q.q} <button onclick="deleteQuestion('cyber', ${i})">🗑️</button></div>`;
+            const num = i + 1;
+            cyberHtml += `
+              <div class="question-item">
+                <div class="question-content">
+                  <strong>${num}. ${q.q}</strong><br>
+                  Réponses : ${q.a.join(' | ')}<br>
+                  Correcte : ${q.correct === 3 ? 'Toutes' : (q.correct + 1)}
+                </div>
+                <div class="question-actions">
+                  <button onclick="editQuestion('cyber', ${i})">✏️</button>
+                  <button class="danger" onclick="deleteQuestion('cyber', ${i})">🗑️</button>
+                </div>
+              </div>
+            `;
           });
+          
+          let rgpdHtml = '<h3>RGPD (1-20) :</h3>';
           (data.rgpd || []).forEach((q, i) => {
-            html += `<div class="question-item">RGPD ${i}: ${q.q} <button onclick="deleteQuestion('rgpd', ${i})">🗑️</button></div>`;
+            const num = i + 1;
+            rgpdHtml += `
+              <div class="question-item">
+                <div class="question-content">
+                  <strong>${num}. ${q.q}</strong><br>
+                  Réponses : ${q.a.join(' | ')}<br>
+                  Correcte : ${q.correct === 3 ? 'Toutes' : (q.correct + 1)}
+                </div>
+                <div class="question-actions">
+                  <button onclick="editQuestion('rgpd', ${i})">✏️</button>
+                  <button class="danger-rgpd" onclick="deleteQuestion('rgpd', ${i})">🗑️</button>
+                </div>
+              </div>
+            `;
           });
-          document.getElementById('questions-list').innerHTML = html;
+          
+          document.getElementById('questions-list').innerHTML = cyberHtml + rgpdHtml;
         });
     }
 
     function addQuestion() {
       const quizType = document.getElementById('quiz-type-config').value;
-      const question = document.getElementById('new-question').value;
-      const answers = document.getElementById('new-answers').value.split('\n').filter(a => a.trim());
-      const correct = parseInt(document.getElementById('correct-answer').value);
+      const question = document.getElementById('new-question').value.trim();
+      const answers = document.getElementById('new-answers').value.split('\n').map(a => a.trim()).filter(a => a);
+      let correct = parseInt(document.getElementById('correct-answer').value);
+      
+      // Conversion : 0 = toutes les réponses → indice 3 (4e réponse)
+      if (correct === 0) {
+        correct = 3;
+      } else if (correct >= 1 && correct <= 4) {
+        correct = correct - 1; // 1→0, 2→1, 3→2, 4→3
+      } else {
+        alert('Indice de réponse invalide. Utilisez 0 (toutes) ou 1-4.');
+        return;
+      }
 
-      if (!question || answers.length === 0 || isNaN(correct) || correct >= answers.length) {
+      if (!question || answers.length === 0 || correct < 0 || correct >= answers.length) {
         alert('Veuillez remplir tous les champs correctement');
         return;
       }
@@ -143,10 +297,87 @@
       });
     }
 
+    function editQuestion(quizType, index) {
+      fetch('/api/config/questions')
+        .then(r => r.json())
+        .then(data => {
+          const questions = quizType === 'cyber' ? data.cyber : data.rgpd;
+          const q = questions[index];
+          
+          // Remplir le formulaire d'ajout avec les valeurs existantes
+          document.getElementById('quiz-type-config').value = quizType;
+          document.getElementById('new-question').value = q.q;
+          document.getElementById('new-answers').value = q.a.join('\n');
+          
+          // Conversion inverse pour l'affichage
+          let displayCorrect;
+          if (q.correct === 3) {
+            displayCorrect = 0; // "Toutes les réponses"
+          } else {
+            displayCorrect = q.correct + 1; // 0→1, 1→2, etc.
+          }
+          document.getElementById('correct-answer').value = displayCorrect;
+          
+          // Scroll vers le formulaire
+          document.getElementById('questions-tab').scrollIntoView({ behavior: 'smooth' });
+          
+          // Changer le bouton "Ajouter" en "Mettre à jour"
+          const addButton = document.querySelector('button[onclick="addQuestion()"]');
+          addButton.textContent = '🔄 Mettre à jour';
+          addButton.onclick = () => updateQuestion(quizType, index);
+        });
+    }
+
+    function updateQuestion(quizType, index) {
+      const question = document.getElementById('new-question').value.trim();
+      const answers = document.getElementById('new-answers').value.split('\n').map(a => a.trim()).filter(a => a);
+      let correct = parseInt(document.getElementById('correct-answer').value);
+      
+      if (correct === 0) {
+        correct = 3;
+      } else if (correct >= 1 && correct <= 4) {
+        correct = correct - 1;
+      } else {
+        alert('Indice de réponse invalide. Utilisez 0 (toutes) ou 1-4.');
+        return;
+      }
+
+      if (!question || answers.length === 0 || correct < 0 || correct >= answers.length) {
+        alert('Veuillez remplir tous les champs correctement');
+        return;
+      }
+
+      // Supprimer l'ancienne question
+      fetch(`/api/config/questions?quizType=${quizType}&index=${index}`, { method: 'DELETE' })
+        .then(() => {
+          // Ajouter la nouvelle version
+          return fetch('/api/config/questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quizType, question, answers, correct })
+          });
+        })
+        .then(() => {
+          loadQuestions();
+          resetForm();
+        });
+    }
+
     function deleteQuestion(quizType, index) {
       if (confirm('Supprimer cette question ?')) {
         fetch(`/api/config/questions?quizType=${quizType}&index=${index}`, { method: 'DELETE' })
           .then(() => loadQuestions());
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('new-question').value = '';
+      document.getElementById('new-answers').value = '';
+      document.getElementById('correct-answer').value = '';
+      const addButton = document.querySelector('button[onclick="updateQuestion()"], button[onclick="addQuestion()"]');
+      if (addButton) {
+        addButton.textContent = '➕ Ajouter une question';
+        addButton.onclick = () => addQuestion();
       }
     }
 
@@ -183,7 +414,14 @@
         .then(depts => {
           let html = '<h3>Départements existants :</h3>';
           depts.forEach((dept, i) => {
-            html += `<div class="question-item">${dept} <button onclick="deleteDepartment(${i})">🗑️</button></div>`;
+            html += `
+              <div class="question-item">
+                <div class="question-content">${dept}</div>
+                <div class="question-actions">
+                  <button class="danger" onclick="deleteDepartment(${i})">🗑️</button>
+                </div>
+              </div>
+            `;
           });
           document.getElementById('departments-list').innerHTML = html;
         });
