@@ -91,17 +91,54 @@ const requireAdmin = (req, res, next) => {
 
 // ========== ROUTES ADMIN ==========
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
+  console.log('🔍 /api/admin/stats appelé');
+  
   try {
+    console.log('📁 Lecture de results.csv');
     const content = fs.readFileSync(RESULTS_FILE, 'utf8');
-    const lines = content.trim().split('\n').slice(1);
-    const data = lines.map(line => {
-      const [date, score, total, level, department, email] = line.split(',');
-      return { date, score: +score, total: +total, level, department, email };
-    });
+    console.log('📊 Contenu du fichier :', content);
 
+    const lines = content.trim().split('\n');
+    console.log('🧮 Nombre de lignes :', lines.length);
+
+    if (lines.length <= 1) {
+      console.log('⚠️  Aucune donnée');
+      return res.json({ totalParticipants: 0, avgScore: 0, byDept: {}, raw: [] });
+    }
+
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const parts = line.split(',');
+      console.log(`📝 Ligne ${i}:`, parts);
+
+      if (parts.length < 5) {
+        console.log(`❌ Ligne ${i} ignorée (colonnes insuffisantes)`);
+        continue;
+      }
+
+      const date = parts[0];
+      const score = parseInt(parts[1], 10);
+      const total = parseInt(parts[2], 10);
+      const level = parts[3] || 'Inconnu';
+      const department = parts[4] || 'Inconnu';
+      const email = parts[5] || 'unknown';
+
+      if (isNaN(score) || isNaN(total) || total <= 0) {
+        console.log(`❌ Ligne ${i} ignorée (score/total invalide)`);
+        continue;
+      }
+
+      data.push({ date, score, total, level, department, email });
+    }
+
+    console.log('✅ Données traitées :', data);
+    // ... reste du calcul ...
     const totalParticipants = data.length;
-    const avgScore = data.length 
-      ? (data.reduce((sum, r) => sum + (r.score / r.total), 0) / data.length * 100).toFixed(1)
+    const avgScore = totalParticipants 
+      ? (data.reduce((sum, r) => sum + (r.score / r.total), 0) / totalParticipants * 100).toFixed(1)
       : 0;
 
     const byDept = data.reduce((acc, r) => {
@@ -109,9 +146,11 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
       return acc;
     }, {});
 
+    console.log('📤 Réponse envoyée');
     res.json({ totalParticipants, avgScore, byDept, raw: data });
   } catch (err) {
-    res.status(500).json({ error: 'Erreur lecture résultats.' });
+    console.error('💥 ERREUR DANS /api/admin/stats:', err);
+    res.status(500).json({ error: 'Erreur serveur', details: err.message });
   }
 });
 
