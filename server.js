@@ -236,6 +236,119 @@ app.post('/api/admin/login', (req, res) => {
     res.status(401).json({ error: 'Mot de passe incorrect' });
   }
 });
+// Fichier de configuration
+const CONFIG_FILE = path.join(__dirname, 'config.json');
+const DEFAULT_CONFIG = {
+  emailDomains: ['telecom-paris.fr', 'imt.fr'],
+  departments: ['Administration', 'Recherche', 'Enseignement', 'IT', 'Autre']
+};
+
+// Charger ou créer la config
+let config = DEFAULT_CONFIG;
+if (fs.existsSync(CONFIG_FILE)) {
+  try {
+    config = JSON.parse(fs.readFileSync(CONFIG_FILE));
+  } catch (e) {
+    console.warn('Config invalide, utilisation des valeurs par défaut');
+  }
+} else {
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+
+// Sauvegarder la config
+function saveConfig() {
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+
+// === API CONFIGURATION ===
+app.get('/api/config', (req, res) => {
+  res.json(config);
+});
+
+app.post('/api/config', (req, res) => {
+  const { emailDomains } = req.body;
+  if (Array.isArray(emailDomains)) {
+    config.emailDomains = emailDomains.slice(0, 5).filter(d => d.trim());
+    saveConfig();
+  }
+  res.json({ success: true });
+});
+
+// === DÉPARTEMENTS ===
+app.get('/api/config/departments', (req, res) => {
+  res.json(config.departments);
+});
+
+app.post('/api/config/departments', (req, res) => {
+  const { department } = req.body;
+  if (department && !config.departments.includes(department)) {
+    config.departments.push(department);
+    saveConfig();
+  }
+  res.json({ success: true });
+});
+
+app.delete('/api/config/departments', (req, res) => {
+  const index = parseInt(req.query.index);
+  if (!isNaN(index) && index >= 0 && index < config.departments.length) {
+    config.departments.splice(index, 1);
+    saveConfig();
+  }
+  res.json({ success: true });
+});
+
+// === QUESTIONS ===
+app.get('/api/config/questions', (req, res) => {
+  res.json({
+    cyber: CYBER_QUESTIONS,
+    rgpd: RGPD_QUESTIONS
+  });
+});
+
+app.post('/api/config/questions', (req, res) => {
+  const { quizType, question, answers, correct } = req.body;
+  const newQuestion = { q: question, a: answers, correct };
+  
+  if (quizType === 'cyber') {
+    CYBER_QUESTIONS.push(newQuestion);
+  } else if (quizType === 'rgpd') {
+    RGPD_QUESTIONS.push(newQuestion);
+  }
+  
+  // Sauvegarder dans un fichier si besoin (optionnel)
+  res.json({ success: true });
+});
+
+app.delete('/api/config/questions', (req, res) => {
+  const { quizType, index } = req.query;
+  const idx = parseInt(index);
+  
+  if (quizType === 'cyber' && idx >= 0 && idx < CYBER_QUESTIONS.length) {
+    CYBER_QUESTIONS.splice(idx, 1);
+  } else if (quizType === 'rgpd' && idx >= 0 && idx < RGPD_QUESTIONS.length) {
+    RGPD_QUESTIONS.splice(idx, 1);
+  }
+  
+  res.json({ success: true });
+});
+
+// === RÉINITIALISATION ===
+app.post('/api/reset-stats', (req, res) => {
+  // Sauvegarder l'en-tête
+  const header = fs.readFileSync(RESULTS_FILE, 'utf8').split('\n')[0];
+  fs.writeFileSync(RESULTS_FILE, header + '\n');
+  res.json({ success: true });
+});
+
+// === VALIDATION EMAIL DANS LE QUIZ ===
+// Dans la route /api/submit-quiz, remplace la validation par :
+/*
+const allowedDomains = config.emailDomains || ['telecom-paris.fr', 'imt.fr'];
+const emailDomain = email.split('@')[1];
+if (!emailDomain || !allowedDomains.some(d => emailDomain === d || emailDomain.endsWith('.' + d))) {
+  return res.status(400).json({ error: 'Email non autorisé' });
+}
+*/
 
 app.listen(PORT, () => {
   console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
