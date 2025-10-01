@@ -150,82 +150,56 @@
       api('/api/admin/config').then(r => r.json())
     ]).then(([stats, config]) => {
       // Stats globales
-      document.getElementById('total').textContent = stats.totalParticipants || 0;
-      document.getElementById('avg').textContent = stats.avgScore || 0;
+      document.getElementById('total').textContent = stats.totalParticipants;
+      document.getElementById('avg').textContent = stats.avgScore;
 
       // Configuration
-      document.getElementById('school-name').textContent = config.schoolName || "École d'ingénieurs";
-      document.getElementById('school-input').value = config.schoolName || "École d'ingénieurs";
+      document.getElementById('school-name').textContent = config.schoolName;
+      document.getElementById('school-input').value = config.schoolName;
 
       // Graphique départements
-      const deptLabels = Object.keys(stats.byDept || {});
-      const deptValues = Object.values(stats.byDept || {});
+      const deptLabels = Object.keys(stats.byDept);
+      const deptValues = Object.values(stats.byDept);
       new Chart(document.getElementById('deptChart'), {
         type: 'bar',
          {
           labels: deptLabels,
           datasets: [{
             label: 'Participants',
-             deptValues, // ✅ CORRIGÉ : ajout de ""
+             deptValues,
             backgroundColor: '#3498db'
           }]
         },
-        options: { 
-          responsive: true, 
-          plugins: { 
-            legend: { display: false } 
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1 }
-            }
-          }
-        }
+        options: { responsive: true, plugins: { legend: { display: false } } }
       });
 
       // Liste des participants
       const tbody = document.getElementById('participants');
-      const participants = stats.raw || [];
-      participants.slice(-10).reverse().forEach(r => {
+      stats.raw.slice(-10).reverse().forEach(r => {
         const row = tbody.insertRow();
         row.innerHTML = `
           <td>${new Date(r.date).toLocaleString('fr-FR')}</td>
-          <td>${r.email || 'unknown'}</td>
-          <td>${r.department || 'Inconnu'}</td>
-          <td>${r.level || 'Inconnu'}</td>
-          <td><a class="btn" href="/api/badge/${encodeURIComponent(r.level || 'Débutant')}" target="_blank">PDF</a></td>
+          <td>${r.email}</td>
+          <td>${r.department}</td>
+          <td>${r.level}</td>
+          <td><a class="btn" href="/api/badge/${r.level}" target="_blank">PDF</a></td>
         `;
       });
     }).catch(err => {
-      console.error('Erreur chargement admin:', err);
-      alert('❌ Impossible de charger les statistiques. Vérifiez la console (F12).');
+      alert('Erreur : connexion perdue');
       localStorage.removeItem('adminToken');
       window.location = 'admin-login.html';
     });
 
     function updateConfig() {
-      const name = document.getElementById('school-input').value.trim();
-      if (!name) {
-        alert('Veuillez entrer un nom d\'établissement');
-        return;
-      }
+      const name = document.getElementById('school-input').value;
       fetch('/api/admin/config', {
         method: 'POST',
-        headers: { 
-          'Authorization': 'Bearer ' + token, 
-          'Content-Type': 'application/json' 
-        },
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify({ schoolName: name })
-      })
-      .then(res => res.json())
-      .then(() => {
+      }).then(() => {
         document.getElementById('school-name').textContent = name;
         alert('✅ Configuration mise à jour');
-      })
-      .catch(err => {
-        console.error('Erreur mise à jour config:', err);
-        alert('❌ Erreur lors de la mise à jour');
       });
     }
 
