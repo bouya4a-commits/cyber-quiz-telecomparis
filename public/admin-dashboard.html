@@ -45,57 +45,47 @@
   </div>
 
   <script>
-    // Vérification d'authentification simple
     if (!localStorage.getItem('admin')) {
       alert('Accès réservé à l\'administrateur');
       window.location = 'admin-login.html';
     }
 
-    // Récupérer les résultats
     fetch('/api/results')
-      .then(response => {
-        if (!response.ok) throw new Error('Erreur réseau');
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
-        // Nombre total
         document.getElementById('total').textContent = data.length;
 
-        // Regrouper par département
-        const deptStats = {};
+        // Compter par département
+        const deptCount = {};
         data.forEach(item => {
-          deptStats[item.department] = (deptStats[item.department] || 0) + 1;
+          deptCount[item.department] = (deptCount[item.department] || 0) + 1;
         });
 
-        // Graphique départements
+        // ✅ CORRECTION ICI : "data:" ajouté
         const ctx = document.getElementById('deptChart').getContext('2d');
         new Chart(ctx, {
           type: 'bar',
            {
-            labels: Object.keys(deptStats),
+            labels: Object.keys(deptCount),
             datasets: [{
               label: 'Participants',
-              data: Object.values(deptStats),
+               Object.values(deptCount), // ← "data:" était manquant
               backgroundColor: '#3498db'
             }]
           },
           options: {
             responsive: true,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
           }
         });
 
-        // Tableau des résultats
+        // Remplir le tableau
         const tbody = document.getElementById('results-body');
         data.forEach(item => {
-          const row = tbody.insertRow();
           const date = new Date(item.date).toLocaleString('fr-FR');
           const percent = Math.round((item.score / item.total) * 100);
+          const row = tbody.insertRow();
           row.innerHTML = `
             <td>${date}</td>
             <td>${item.email}</td>
@@ -105,10 +95,9 @@
           `;
         });
       })
-      .catch(error => {
-        console.error('Erreur:', error);
-        document.getElementById('total').textContent = 'Erreur';
-        alert('Impossible de charger les statistiques. Vérifiez la console.');
+      .catch(err => {
+        console.error('Erreur chargement stats:', err);
+        alert('❌ Impossible de charger les statistiques. Vérifiez la console.');
       });
   </script>
 </body>
