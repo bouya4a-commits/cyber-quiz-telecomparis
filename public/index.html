@@ -1,267 +1,37 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Quiz Cybersécurité & RGPD</title>
-  <style>
-    * { box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background: #f0f2f5; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-    h1 { color: #2c3e50; margin-bottom: 30px; }
-    input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    .quiz-buttons { display: flex; gap: 15px; margin-top: 20px; }
-    .quiz-btn { 
-      flex: 1; 
-      padding: 16px; 
-      border: none; 
-      border-radius: 10px; 
-      font-size: 18px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      transition: transform 0.2s; 
-    }
-    .cyber-btn { background: #3498db; color: white; }
-    .rgpd-btn { background: #2ecc71; color: white; }
-    .quiz-btn:hover { transform: translateY(-3px); }
-    .screen { display: none; }
-    .active { display: block; }
-    .badge { font-size: 80px; margin: 20px 0; }
-    .next-btn {
-      background: #9b59b6 !important;
-      color: white !important;
-      font-weight: bold;
-      margin-top: 20px;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      width: 100% !important;
-      font-size: 16px !important;
-    }
-  .logo {
-    height: 60px;
-    margin: 15px 0;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Écran 1 : Email + Département + Choix quiz -->
-    <div id="screen1" class="screen active">
-      <h1>🔐 Quiz Cybersécurité & RGPD</h1>
-  
-  <!-- 🔸 LOGO 🔸 -->
-  <img class="logo" src="/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
+function startQuiz(quizType) {
+  // Charger les départements depuis la config
+  fetch('/api/config/departments')
+    .then(r => r.json())
+    .then(departments => {
+      const select = document.getElementById('department');
+      select.innerHTML = '<option value="">-- Département --</option>';
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        select.appendChild(option);
+      });
       
-      <p>Entrez vos informations :</p>
-      <input type="email" id="email" placeholder="prenom.nom@ecole.fr" required />
-      <select id="department" required>
-        <option value="">-- Département --</option>
-        <option value="Administration">Administration</option>
-        <option value="Recherche">Recherche</option>
-        <option value="Enseignement">Enseignement</option>
-        <option value="IT">IT / DSI</option>
-        <option value="Autre">Autre</option>
-      </select>
-      
-      <div class="quiz-buttons">
-        <button class="quiz-btn cyber-btn" onclick="startQuiz('cyber')">Quiz Cybersécurité</button>
-        <button class="quiz-btn rgpd-btn" onclick="startQuiz('rgpd')">Quiz RGPD</button>
-      </div>
-    </div>
-
-    <!-- Écran 2 : Quiz -->
-    <div id="screen2" class="screen">
-      <div id="question"></div>
-      <div id="answers"></div>
-      <button id="next" class="next-btn" style="display:none;" onclick="next()">➡️ Question suivante</button>
-    </div>
-
-    <!-- Écran 3 : Résultat -->
-    <div id="screen3" class="screen">
-      <h1>Votre résultat 🎉</h1>
-      <div class="badge" id="badge">🏅</div>
-      <p id="message"></p>
-      <p id="details"></p>
-      <p>Merci pour votre participation !</p>
-    </div>
-  </div>
-
-  <script>
-    const CYBER_QUESTIONS = [
-      { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
-      { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
-      { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
-      { q: "Faut-il mettre à jour ses logiciels ?", a: ["Non", "Seulement les payants", "Oui, pour corriger les failles", "Uniquement si l’IT le demande"], correct: 2 },
-      { q: "Que faire en quittant votre poste ?", a: ["Verrouiller l’écran", "Laisser allumé", "Débrancher le câble", "Rien"], correct: 0 },
-      { q: "Qu’est-ce qu’un VPN ?", a: ["Un antivirus", "Un réseau privé virtuel sécurisé", "Un type de mot de passe", "Un outil de piratage"], correct: 1 },
-      { q: "Est-il sécurisé d’utiliser une clé USB trouvée ?", a: ["Oui, si propre", "Non, risque de malware", "Oui, après formatage", "Seulement si petite"], correct: 1 },
-      { q: "Quel est le risque principal du Wi-Fi public ?", a: ["Connexion lente", "Vol de données en clair", "Perte de batterie", "Publicité"], correct: 1 },
-      { q: "Que signifie 2FA ?", a: ["Deux fichiers", "Authentification à deux facteurs", "Format sécurisé", "Double antivirus"], correct: 1 },
-      { q: "Qui contacter en cas de cyberattaque ?", a: ["Personne", "Un ami", "Le service informatique", "Google"], correct: 2 },
-      { q: "Qu’est-ce qu’un ransomware ?", a: ["Un virus qui chiffre vos fichiers", "Un logiciel de sauvegarde", "Un pare-feu", "Un outil de cryptomonnaie"], correct: 0 },
-      { q: "Pourquoi utiliser un gestionnaire de mots de passe ?", a: ["Pour se souvenir de tous ses mots de passe", "Pour générer des mots de passe forts", "Pour stocker ses mots de passe de façon sécurisée", "Toutes ces réponses"], correct: 3 },
-      { q: "Qu’est-ce qu’une sauvegarde ?", a: ["Une copie de sécurité de vos données", "Un antivirus", "Un disque dur externe", "Un logiciel de nettoyage"], correct: 0 },
-      { q: "Que faire si votre ordinateur est lent et affiche des pubs ?", a: ["Ignorer", "Installer un antivirus", "Contacter le service IT", "Redémarrer"], correct: 2 },
-      { q: "Qu’est-ce qu’un pare-feu ?", a: ["Un antivirus", "Un mur physique", "Un système qui filtre le trafic réseau", "Un mot de passe"], correct: 2 },
-      { q: "Pourquoi ne pas cliquer sur les liens dans les SMS inconnus ?", a: ["C'est illégal", "Risque de phishing", "Ça coûte cher", "C'est interdit par l'école"], correct: 1 },
-      { q: "Qu’est-ce qu’une authentification biométrique ?", a: ["Mot de passe complexe", "Reconnaissance par empreinte digitale", "Carte d'accès", "Code SMS"], correct: 1 },
-      { q: "Que faire si vous perdez votre badge d’accès ?", a: ["Rien", "En informer le service sécurité", "En fabriquer un nouveau", "Utiliser celui d'un collègue"], correct: 1 },
-      { q: "Pourquoi chiffrer ses données ?", a: ["Pour les rendre plus rapides", "Pour les protéger contre les accès non autorisés", "Pour économiser de l'espace", "Pour les partager facilement"], correct: 1 },
-      { q: "Qu’est-ce qu’une politique de sécurité ?", a: ["Un document qui définit les règles de sécurité", "Un logiciel antivirus", "Une formation obligatoire", "Un mot de passe"], correct: 0 }
-    ];
-
-    const RGPD_QUESTIONS = [
-      { q: "Qu’est-ce que le RGPD ?", a: ["Un règlement européen sur la protection des données", "Une loi française", "Un logiciel de sécurité", "Un type de contrat"], correct: 0 },
-      { q: "Qui est le Délégué à la Protection des Données (DPO) ?", a: ["Un avocat", "Une personne chargée de veiller au respect du RGPD", "Le directeur informatique", "Un consultant externe"], correct: 1 },
-      { q: "Quand faut-il obtenir le consentement ?", a: ["Toujours", "Quand on traite des données sensibles", "Quand la loi l'exige", "Dans la plupart des cas de traitement"], correct: 3 },
-      { q: "Que faire en cas de fuite de données ?", a: ["Rien", "Avertir la CNIL sous 72h", "Supprimer les données", "Changer de mot de passe"], correct: 1 },
-      { q: "Combien de temps conserver les données ?", a: ["À vie", "Le temps nécessaire à la finalité", "5 ans", "10 ans"], correct: 1 },
-      { q: "Qu’est-ce qu’une donnée à caractère personnel ?", a: ["Nom, prénom, email", "Adresse IP", "Photo", "Toutes ces réponses"], correct: 3 },
-      { q: "Peut-on transférer des données hors UE ?", a: ["Jamais", "Oui, avec des garanties", "Seulement vers les USA", "Oui, librement"], correct: 1 },
-      { q: "Quels sont les droits des personnes ?", a: ["Accès, rectification, effacement", "Portabilité", "Opposition", "Tous ces droits"], correct: 3 },
-      { q: "Qu’est-ce qu’un registre des traitements ?", a: ["Un document obligatoire listant les traitements", "Un logiciel de gestion", "Un registre papier", "Un fichier Excel"], correct: 0 },
-      { q: "Qui est responsable du traitement ?", a: ["Le sous-traitant", "Le DPO", "Le responsable du traitement", "La CNIL"], correct: 2 },
-      { q: "Qu’est-ce qu’une analyse d’impact (AIPD) ?", a: ["Une étude des risques liés au traitement", "Un audit financier", "Une formation", "Un logiciel"], correct: 0 },
-      { q: "Faut-il informer les personnes ?", a: ["Non", "Oui, sur la finalité du traitement", "Seulement si elles le demandent", "Oui, mais pas toujours"], correct: 1 },
-      { q: "Peut-on photographier des étudiants ?", a: ["Oui, librement", "Non, jamais", "Oui, avec leur consentement", "Oui, pour des raisons pédagogiques"], correct: 2 },
-      { q: "Que faire avec les CV reçus ?", a: ["Les conserver indéfiniment", "Les détruire après 2 ans", "Les partager avec d'autres services", "Les archiver sans limite"], correct: 1 },
-      { q: "Peut-on partager des listes de diffusion ?", a: ["Oui, librement", "Non, sans consentement", "Oui, si c'est interne", "Oui, pour les anciens élèves"], correct: 1 },
-      { q: "Qu’est-ce qu’une sous-traitance ?", a: ["Un prestataire qui traite des données", "Un contrat de travail", "Une formation externe", "Un logiciel cloud"], correct: 0 },
-      { q: "Faut-il former les personnels ?", a: ["Non", "Oui, c'est obligatoire", "Seulement l'IT", "Oui, fortement recommandé"], correct: 1 },
-      { q: "Que faire des anciens dossiers papier ?", a: ["Les jeter", "Les numériser et détruire", "Les conserver selon la durée légale", "Les donner aux archives"], correct: 2 },
-      { q: "Peut-on publier des photos d’événements ?", a: ["Oui, toujours", "Non, jamais", "Oui, avec autorisation", "Oui, si floutées"], correct: 2 },
-      { q: "Qu’est-ce qu’une violation de données ?", a: ["Perte, altération, divulgation non autorisée", "Un virus", "Une panne informatique", "Une erreur de saisie"], correct: 0 }
-    ];
-
-    let current = 0, score = 0, userEmail = '', userDepartment = '', currentQuiz = '';
-    let userAnswers = [];
-
-    function startQuiz(quizType) {
+      // Validation email avec domaines configurés
+      return fetch('/api/config');
+    })
+    .then(configResp => configResp.json())
+    .then(config => {
       const email = document.getElementById('email').value.trim();
       const department = document.getElementById('department').value;
-      if (!email || !department || !/@.*\..+/.test(email)) {
+      
+      // Validation email
+      const allowedDomains = config.emailDomains || ['telecom-paris.fr', 'imt.fr'];
+      const emailDomain = email.split('@')[1];
+      const isValidDomain = allowedDomains.some(domain => 
+        emailDomain === domain || emailDomain.endsWith('.' + domain)
+      );
+      
+      if (!email || !department || !isValidDomain) {
         alert("Veuillez entrer un email et un département valides");
         return;
       }
       
-      userEmail = email;
-      userDepartment = department;
-      currentQuiz = quizType;
-      current = 0;
-      score = 0;
-      userAnswers = new Array(20).fill(-1);
-      
-      showScreen(2);
-      loadQuestion();
-    }
-
-    function loadQuestion() {
-      const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
-      const q = questions[current];
-      document.getElementById('question').innerHTML = `<h2>${q.q}</h2>`;
-      const answers = document.getElementById('answers');
-      answers.innerHTML = '';
-      q.a.forEach((a, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = a;
-        btn.style.marginTop = '10px';
-        btn.style.width = '100%';
-        btn.style.padding = '12px';
-        btn.style.textAlign = 'left';
-        btn.onclick = () => selectAnswer(i);
-        answers.appendChild(btn);
-      });
-      document.getElementById('next').style.display = 'none';
-    }
-
-function selectAnswer(selected) {
-  const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
-  const q = questions[current];
-  userAnswers[current] = selected;
-  
-  const buttons = document.querySelectorAll('#answers button');
-  buttons.forEach((btn, i) => {
-    btn.disabled = true;
-    
-    if (i === selected) {
-      if (i === q.correct) {
-        // ✅ BONNE RÉPONSE : fond vert + bordure
-        btn.style.backgroundColor = '#d4edda';
-        btn.style.borderColor = '#28a745';
-        btn.style.borderWidth = '2px';
-        btn.style.borderStyle = 'solid';
-        score++;
-      } else {
-        // ❌ MAUVAISE RÉPONSE : fond rouge + bordure
-        btn.style.backgroundColor = '#f8d7da';
-        btn.style.borderColor = '#dc3545';
-        btn.style.borderWidth = '2px';
-        btn.style.borderStyle = 'solid';
-      }
-    } else if (i === q.correct) {
-      // ✅ Afficher la bonne réponse en vert (même si pas cliquée)
-      btn.style.backgroundColor = '#d4edda';
-      btn.style.borderColor = '#28a745';
-      btn.style.borderWidth = '2px';
-      btn.style.borderStyle = 'solid';
-    }
-  });
-  
-  document.getElementById('next').style.display = 'block';
+      // ... reste de la logique ...
+    });
 }
-
-    function next() {
-      current++;
-      const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
-      if (current < questions.length) {
-        loadQuestion();
-      } else {
-        showResult();
-      }
-    }
-
-    function showResult() {
-      const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
-      const percent = Math.round((score / questions.length) * 100);
-      let badge = '📚', message = '';
-      if (percent >= 80) { badge = '🥇'; message = "Excellent !"; }
-      else if (percent >= 60) { badge = '🥈'; message = "Très bon !"; }
-      else if (percent >= 40) { badge = '🥉'; message = "Bon début !"; }
-      else { message = "À revoir !"; }
-
-      document.getElementById('badge').textContent = badge;
-      document.getElementById('message').textContent = message;
-      document.getElementById('details').innerHTML = `
-        Pour : <strong>${userEmail}</strong><br>
-        Score : <strong>${percent}%</strong> (${score}/${questions.length})<br>
-        Département : ${userDepartment}
-      `;
-
-      fetch('/api/submit-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: userEmail, 
-          department: userDepartment, 
-          score, 
-          total: questions.length,
-          answers: userAnswers.map((ans, i) => ans === questions[i].correct ? 1 : 0),
-          quizType: currentQuiz
-        })
-      });
-
-      showScreen(3);
-    }
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-      document.getElementById(`screen${id}`).classList.add('active');
-    }
-  </script>
-</body>
-</html>
