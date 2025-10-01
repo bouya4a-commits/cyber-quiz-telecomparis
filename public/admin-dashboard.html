@@ -25,6 +25,12 @@
       text-align: center; 
       position: relative;
     }
+    .logo-header {
+      height: 40px;
+      vertical-align: middle;
+      margin-right: 15px;
+      border-radius: 6px;
+    }
     .export-btn {
       position: absolute;
       right: 20px;
@@ -86,36 +92,39 @@
     tr:hover { 
       background: #f1f3f5; 
     }
+    
+    /* Barres verticales */
     .vertical-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 10px;
-  width: 60px;
-}
-.bar {
-  width: 100%;
-  background: #3498db;
-  border-radius: 4px 4px 0 0;
-  margin-bottom: 8px;
-  transition: height 0.5s ease;
-}
-.bar-label {
-  text-align: center;
-  font-size: 12px;
-  color: #2c3e50;
-  margin-top: 5px;
-}
-.stats-chart {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  height: 200px;
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 20px 0;
-}
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 10px;
+      width: 60px;
+    }
+    .bar {
+      width: 100%;
+      background: #3498db;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: 8px;
+      transition: height 0.5s ease;
+    }
+    .bar-label {
+      text-align: center;
+      font-size: 12px;
+      color: #2c3e50;
+      margin-top: 5px;
+    }
+    .stats-chart {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 200px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    
     .question-item {
       background: #fef6f6;
       padding: 12px;
@@ -161,10 +170,8 @@
 <body>
   <div class="container">
     <header>
-     <header>
-  <h1 style="display:inline-block; vertical-align:middle;">📊 Tableau de bord - Quiz Cybersécurité & RGPD</h1>
-  <button class="export-btn" onclick="exportCSV()">📥 Exporter CSV</button>
-</header>
+      <img class="logo-header" src="/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
+      <h1 style="display:inline-block; vertical-align:middle;">📊 Tableau de bord - Quiz Cybersécurité & RGPD</h1>
       <button class="export-btn" onclick="exportCSV()">📥 Exporter CSV</button>
     </header>
 
@@ -276,22 +283,29 @@
       });
     });
 
-    // Export CSV
+    // Export CSV contextuel
     function exportCSV() {
-  // Déterminer l'onglet actif
-  const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
-  const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  
-  let filename;
-  if (activeTab === 'cyber') {
-    filename = `quiz-cyber-results-${dateStr}.csv`;
-  } else {
-    filename = `quiz-rgpd-results-${dateStr}.csv`;
-  }
-  
-  // Appel à une nouvelle route API
-  window.location.href = `/api/export-csv?quizType=${activeTab}&filename=${encodeURIComponent(filename)}`;
-}
+      const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+      const dateStr = new Date().toISOString().slice(0, 10);
+      let filename;
+      if (activeTab === 'cyber') {
+        filename = `quiz-cyber-results-${dateStr}.csv`;
+      } else {
+        filename = `quiz-rgpd-results-${dateStr}.csv`;
+      }
+      window.location.href = `/api/export-csv?quizType=${activeTab}&filename=${encodeURIComponent(filename)}`;
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString('fr-FR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
 
     // Charger les données
     fetch('/api/stats')
@@ -311,29 +325,23 @@
       const { cyber, cyberStats } = allData;
       document.getElementById('cyber-count').textContent = cyberStats.count;
 
-      // Départements
+      // Barres verticales
       const cyberDepts = Object.entries(cyberStats.deptStats || {}).map(([dept, count]) => ({ dept, count }))
         .sort((a, b) => b.count - a.count);
       const maxCount = Math.max(...cyberDepts.map(d => d.count), 1);
-      let deptHtml = '';
+      let chartHtml = '<div class="stats-chart">';
       cyberDepts.forEach((entry, i) => {
-        const width = (entry.count / maxCount) * 100;
+        const height = (entry.count / maxCount) * 150;
         const color = COLORS[i % COLORS.length];
-        deptHtml += `
-          <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <strong>${entry.dept}</strong>
-              <span>${entry.count} participants</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar-fill" style="width: ${width}%; background-color: ${color};">
-                ${entry.count}
-              </div>
-            </div>
+        chartHtml += `
+          <div class="vertical-bar">
+            <div class="bar" style="height: ${height}px; background-color: ${color};"></div>
+            <div class="bar-label">${entry.dept}<br>(${entry.count})</div>
           </div>
         `;
       });
-      document.getElementById('cyber-dept-bars').innerHTML = deptHtml || '<p>Aucun participant</p>';
+      chartHtml += '</div>';
+      document.getElementById('cyber-dept-bars').innerHTML = chartHtml || '<p>Aucun participant</p>';
 
       // Top questions
       let questionsHtml = '';
@@ -374,29 +382,23 @@
       const { rgpd, rgpdStats } = allData;
       document.getElementById('rgpd-count').textContent = rgpdStats.count;
 
-      // Départements
+      // Barres verticales
       const rgpdDepts = Object.entries(rgpdStats.deptStats || {}).map(([dept, count]) => ({ dept, count }))
         .sort((a, b) => b.count - a.count);
       const maxCount = Math.max(...rgpdDepts.map(d => d.count), 1);
-      let deptHtml = '';
+      let chartHtml = '<div class="stats-chart">';
       rgpdDepts.forEach((entry, i) => {
-        const width = (entry.count / maxCount) * 100;
+        const height = (entry.count / maxCount) * 150;
         const color = COLORS[i % COLORS.length];
-        deptHtml += `
-          <div style="margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <strong>${entry.dept}</strong>
-              <span>${entry.count} participants</span>
-            </div>
-            <div class="bar-container">
-              <div class="bar-fill" style="width: ${width}%; background-color: ${color};">
-                ${entry.count}
-              </div>
-            </div>
+        chartHtml += `
+          <div class="vertical-bar">
+            <div class="bar" style="height: ${height}px; background-color: ${color};"></div>
+            <div class="bar-label">${entry.dept}<br>(${entry.count})</div>
           </div>
         `;
       });
-      document.getElementById('rgpd-dept-bars').innerHTML = deptHtml || '<p>Aucun participant</p>';
+      chartHtml += '</div>';
+      document.getElementById('rgpd-dept-bars').innerHTML = chartHtml || '<p>Aucun participant</p>';
 
       // Top questions
       let questionsHtml = '';
