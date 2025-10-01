@@ -10,16 +10,43 @@
     .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     h1 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
     input, select, button { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background: #2980b9; }
+    button:not(.next-btn) { 
+      background: #3498db; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold; 
+    }
+    button:not(.next-btn):hover { background: #2980b9; }
     .screen { display: none; }
     .active { display: block; }
     .badge { font-size: 80px; margin: 20px 0; text-align: center; }
+
+    /* ✅ Bouton SUIVANT distinct */
+    .next-btn {
+      background: #2ecc71 !important;
+      color: white !important;
+      font-weight: bold;
+      margin-top: 20px;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100% !important;
+      font-size: 16px !important;
+    }
+    .next-btn:hover {
+      background: #27ae60 !important;
+    }
+    .next-btn:disabled {
+      background: #bdc3c7 !important;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Écran 1 : Email + Département -->
     <div id="screen1" class="screen active">
       <h1>Quiz Cybersécurité</h1>
       <p>Entrez vos informations :</p>
@@ -32,19 +59,17 @@
         <option value="IT">IT / DSI</option>
         <option value="Autre">Autre</option>
       </select>
-      <button onclick="startQuiz()">Commencer</button>
+      <button onclick="startQuiz()">Commencer le quiz</button>
     </div>
 
-    <!-- Écran 2 : Quiz -->
     <div id="screen2" class="screen">
       <div id="question"></div>
       <div id="answers"></div>
-      <button id="next" style="display:none;" onclick="next()">Suivant</button>
+      <button id="next" class="next-btn" style="display:none;" onclick="next()">➡️ Question suivante</button>
     </div>
 
-    <!-- Écran 3 : Résultat -->
     <div id="screen3" class="screen">
-      <h1>Votre résultat</h1>
+      <h1>Votre résultat 🎉</h1>
       <div class="badge" id="badge">🏅</div>
       <p id="message"></p>
       <p id="details"></p>
@@ -66,22 +91,12 @@
     function startQuiz() {
       const email = document.getElementById('email').value.trim();
       const department = document.getElementById('department').value;
-      
-      if (!email || !department) {
-        alert("Veuillez remplir tous les champs");
+      if (!email || !department || !/@.*\..+/.test(email)) {
+        alert("Veuillez entrer un email et un département valides");
         return;
       }
-
-      // Validation email basique
-      if (!/@.*\..+/.test(email)) {
-        alert("Email invalide");
-        return;
-      }
-
       userEmail = email;
       userDepartment = department;
-      
-      // Passer à l'écran du quiz
       showScreen(2);
       loadQuestion();
     }
@@ -103,14 +118,20 @@
 
     function selectAnswer(selected) {
       const q = questions[current];
-      if (selected === q.correct) {
-        score++;
-        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
-      } else {
-        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
-        document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
-      }
-      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
+      const buttons = document.querySelectorAll('#answers button');
+      buttons.forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === selected) {
+          if (i === q.correct) {
+            btn.style.backgroundColor = '#d4edda';
+            score++;
+          } else {
+            btn.style.backgroundColor = '#f8d7da';
+          }
+        } else if (i === q.correct) {
+          btn.style.backgroundColor = '#d4edda';
+        }
+      });
       document.getElementById('next').style.display = 'block';
     }
 
@@ -126,41 +147,31 @@
     function showResult() {
       const percent = Math.round((score / questions.length) * 100);
       let badge = '📚', message = '';
-      if (percent >= 80) { badge = '🥇'; message = "Excellent ! Vous êtes un champion de la cybersécurité !"; }
-      else if (percent >= 60) { badge = '🥈'; message = "Très bon ! Vous maîtrisez les bases essentielles."; }
-      else if (percent >= 40) { badge = '🥉'; message = "Bon début ! Relisez les bonnes pratiques."; }
-      else { message = "À revoir ! La cybersécurité est cruciale pour tous."; }
+      if (percent >= 80) { badge = '🥇'; message = "Excellent !"; }
+      else if (percent >= 60) { badge = '🥈'; message = "Très bon !"; }
+      else if (percent >= 40) { badge = '🥉'; message = "Bon début !"; }
+      else { message = "À revoir !"; }
 
       document.getElementById('badge').textContent = badge;
       document.getElementById('message').textContent = message;
       document.getElementById('details').innerHTML = `
-        Résultat pour : <strong>${userEmail}</strong><br>
+        Pour : <strong>${userEmail}</strong><br>
         Score : <strong>${percent}%</strong> (${score}/${questions.length})<br>
         Département : ${userDepartment}
       `;
 
-      // Envoi au backend
       fetch('/api/submit-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email: userEmail, 
-          department: userDepartment, 
-          score, 
-          total: questions.length 
-        })
+        body: JSON.stringify({ email: userEmail, department: userDepartment, score, total: questions.length })
       });
 
       showScreen(3);
     }
 
-    function showScreen(screenId) {
-      // Cacher tous les écrans
-      document.querySelectorAll('.screen').forEach(el => {
-        el.classList.remove('active');
-      });
-      // Afficher l'écran demandé
-      document.getElementById(`screen${screenId}`).classList.add('active');
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(`screen${id}`).classList.add('active');
     }
   </script>
 </body>
