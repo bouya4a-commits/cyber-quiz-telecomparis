@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -21,7 +20,7 @@
 <body>
   <div class="container">
     <!-- Écran 1 : Email + Département -->
-    <div id="screen1" class="active">
+    <div id="screen1" class="screen active">
       <h1>Quiz Cybersécurité</h1>
       <p>Entrez vos informations :</p>
       <input type="email" id="email" placeholder="prenom.nom@ecole.fr" required />
@@ -31,6 +30,7 @@
         <option value="Recherche">Recherche</option>
         <option value="Enseignement">Enseignement</option>
         <option value="IT">IT / DSI</option>
+        <option value="Autre">Autre</option>
       </select>
       <button onclick="startQuiz()">Commencer</button>
     </div>
@@ -54,76 +54,7 @@
 
   <script>
     const questions = [
-      { q: "Mot de passe sécurisé ?", a: ["123456", "P@ssw0rd!2025", "motdepasse", "azerty"], correct: 1 },
-      { q: "Email suspect ?", a: ["L'ouvrir", "Le supprimer", "Le transférer", "Y répondre"], correct: 1 },
-      { q: "Mettre à jour logiciels ?", a: ["Jamais", "Seulement si demandé", "Régulièrement", "Une fois par an"], correct: 2 },
-      { q: "Quitter son poste ?", a: ["Laisser l'ordi allumé", "Verrouiller l'écran", "Débrancher", "Rien faire"], correct: 1 },
-      { q: "Clé USB trouvée ?", a: ["L'utiliser", "La formater", "Ne pas l'utiliser", "La donner à IT"], correct: 2 }
-    ];
-
-    let current = 0, score = 0, email = '', dept = '';
-
-    function startQuiz() {
-      email = document.getElementById('email').value;
-      dept = document.getElementById('department').value;
-      if (!email || !dept) return alert("Veuillez remplir tous les champs");
-      showScreen(2);
-      loadQuestion();
-    }
-
-    function loadQuestion() {
-      const q = questions[current];
-      document.getElementById('question').innerHTML = `<h2>${q.q}</h2>`;
-      const answers = document.getElementById('answers');
-      answers.innerHTML = '';
-      q.a.forEach((a, i) => {
-        const btn = document.createElement('button');
-        btn.textContent = a;
-        btn.onclick = () => select(i);
-        answers.appendChild(btn);
-      });
-      document.getElementById('next').style.display = 'none';
-    }
-
-    function select(selected) {
-      const q = questions[current];
-      if (selected === q.correct) score++;
-      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
-      document.getElementById('next').style.display = 'block';
-    }
-
-    function next() {
-      current++;
-      if (current < questions.length) loadQuestion();
-      else showResult();
-    }
-
-    function showResult() {
-      const percent = Math.round((score / questions.length) * 100);
-      let badge = '📚', msg = '';
-      if (percent >= 80) { badge = '🥇'; msg = "Excellent !"; }
-      else if (percent >= 60) { badge = '🥈'; msg = "Très bien !"; }
-      else if (percent >= 40) { badge = '🥉'; msg = "Bon début !"; }
-      else { msg = "À revoir !"; }
-
-      document.getElementById('badge').textContent = badge;
-      document.getElementById('message').textContent = msg;
-      document.getElementById('details').innerHTML = `Score : <strong>${percent}%</strong> (${score}/${questions.length})<br>Email : ${email}`;
-
-      // Envoi au backend
-      fetch('/api/submit-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, department: dept, score, total: questions.length })
-      });
-
-      showScreen(3);
-    }
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen, #screen1').forEach(el => el.classList.remove('active'));
-      document.getElementById(`screen${id}`).classList.add('active');
-    }
-  </script>
-</body>
-</html>
+      { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
+      { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
+      { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
+      { q: "Faut-il
