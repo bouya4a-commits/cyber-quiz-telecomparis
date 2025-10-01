@@ -179,20 +179,41 @@
       document.getElementById('next').style.display = 'none';
     }
 
-    function selectAnswer(selected) {
-      const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
-      const q = questions[current];
-      userAnswers[current] = selected;
-      if (selected === q.correct) {
+function selectAnswer(selected) {
+  const questions = currentQuiz === 'cyber' ? CYBER_QUESTIONS : RGPD_QUESTIONS;
+  const q = questions[current];
+  userAnswers[current] = selected;
+  
+  const buttons = document.querySelectorAll('#answers button');
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    
+    if (i === selected) {
+      if (i === q.correct) {
+        // ✅ BONNE RÉPONSE : fond vert + bordure
+        btn.style.backgroundColor = '#d4edda';
+        btn.style.borderColor = '#28a745';
+        btn.style.borderWidth = '2px';
+        btn.style.borderStyle = 'solid';
         score++;
-        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
       } else {
-        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
-        document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
+        // ❌ MAUVAISE RÉPONSE : fond rouge + bordure
+        btn.style.backgroundColor = '#f8d7da';
+        btn.style.borderColor = '#dc3545';
+        btn.style.borderWidth = '2px';
+        btn.style.borderStyle = 'solid';
       }
-      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
-      document.getElementById('next').style.display = 'block';
+    } else if (i === q.correct) {
+      // ✅ Afficher la bonne réponse en vert (même si pas cliquée)
+      btn.style.backgroundColor = '#d4edda';
+      btn.style.borderColor = '#28a745';
+      btn.style.borderWidth = '2px';
+      btn.style.borderStyle = 'solid';
     }
+  });
+  
+  document.getElementById('next').style.display = 'block';
+}
 
     function next() {
       current++;
