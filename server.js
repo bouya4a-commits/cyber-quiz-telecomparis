@@ -89,26 +89,33 @@ const requireAdmin = (req, res, next) => {
 // ========== ROUTES ADMIN ==========
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
   try {
-    const content = fs.readFileSync(RESULTS_FILE, 'utf8');
-    const lines = content.trim().split('\n').slice(1);
-    const data = lines.map(line => {
-      const [date, score, total, level, department, email] = line.split(',');
-      return { date, score: +score, total: +total, level, department, email };
-    });
+    if (!fs.existsSync(RESULTS_FILE)) {
+      return res.json({ totalParticipants: 0, avgScore: 0, byDept: {}, raw: [] });
+    }
+    const lines = fs.readFileSync(RESULTS_FILE, 'utf8').trim().split('\n').slice(1);
+    const data = lines
+      .map(line => {
+        const p = line.split(',');
+        return p.length >= 5 ? {
+          date: p[0],
+          score: +p[1] || 0,
+          total: +p[2] || 1,
+          level: p[3] || 'Inconnu',
+          department: p[4] || 'Inconnu',
+          email: p[5] || 'unknown'
+        } : null;
+      })
+      .filter(Boolean)
+      .filter(r => !isNaN(r.score) && r.total > 0);
 
-    const totalParticipants = data.length;
-    const avgScore = data.length 
-      ? (data.reduce((sum, r) => sum + (r.score / r.total), 0) / data.length * 100).toFixed(1)
-      : 0;
+    const total = data.length;
+    const avg = total ? (data.reduce((s, r) => s + (r.score / r.total), 0) / total * 100).toFixed(1) : 0;
+    const byDept = data.reduce((a, r) => ((a[r.department] = (a[r.department] || 0) + 1), a), {});
 
-    const byDept = data.reduce((acc, r) => {
-      acc[r.department] = (acc[r.department] || 0) + 1;
-      return acc;
-    }, {});
-
-    res.json({ totalParticipants, avgScore, byDept, raw: data });
-  } catch (err) {
-    res.status(500).json({ error: 'Erreur lecture résultats.' });
+    res.json({ totalParticipants: total, avgScore: avg, byDept, raw: data });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Erreur chargement stats' });
   }
 });
 
