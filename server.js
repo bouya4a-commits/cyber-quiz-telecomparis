@@ -91,16 +91,28 @@ const requireAdmin = (req, res, next) => {
 
 // ========== ROUTES ADMIN ==========
 app.get('/api/admin/stats', requireAdmin, (req, res) => {
-  res.json({
-    totalParticipants: 3,
-    avgScore: "75.0",
-    byDept: { "IT / DSI": 2, "Recherche - LTCI": 1 },
-    raw: [
-      { date: "2025-04-05T10:00:00.000Z", score: 8, total: 10, level: "Avancé", department: "IT / DSI", email: "user***@telecom-paris.fr" },
-      { date: "2025-04-05T11:00:00.000Z", score: 10, total: 10, level: "Expert", department: "IT / DSI", email: "admin***@telecom-paris.fr" },
-      { date: "2025-04-05T12:00:00.000Z", score: 5, total: 10, level: "Intermédiaire", department: "Recherche - LTCI", email: "chercheur***@telecom-paris.fr" }
-    ]
-  });
+  try {
+    const content = fs.readFileSync(RESULTS_FILE, 'utf8');
+    const lines = content.trim().split('\n').slice(1);
+    const data = lines.map(line => {
+      const [date, score, total, level, department, email] = line.split(',');
+      return { date, score: +score, total: +total, level, department, email };
+    });
+
+    const totalParticipants = data.length;
+    const avgScore = data.length 
+      ? (data.reduce((sum, r) => sum + (r.score / r.total), 0) / data.length * 100).toFixed(1)
+      : 0;
+
+    const byDept = data.reduce((acc, r) => {
+      acc[r.department] = (acc[r.department] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({ totalParticipants, avgScore, byDept, raw: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur lecture résultats.' });
+  }
 });
 
 app.get('/api/admin/config', requireAdmin, (req, res) => {
