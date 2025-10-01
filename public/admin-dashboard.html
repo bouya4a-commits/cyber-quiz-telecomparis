@@ -267,19 +267,20 @@
 
     // Export CSV
     function exportCSV() {
-      window.location.href = '/api/export-csv';
-    }
-
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleString('fr-FR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
+  // Déterminer l'onglet actif
+  const activeTab = document.querySelector('.tab.active').getAttribute('data-tab');
+  const dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  
+  let filename;
+  if (activeTab === 'cyber') {
+    filename = `quiz-cyber-results-${dateStr}.csv`;
+  } else {
+    filename = `quiz-rgpd-results-${dateStr}.csv`;
+  }
+  
+  // Appel à une nouvelle route API
+  window.location.href = `/api/export-csv?quizType=${activeTab}&filename=${encodeURIComponent(filename)}`;
+}
 
     // Charger les données
     fetch('/api/stats')
