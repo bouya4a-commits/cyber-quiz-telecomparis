@@ -25,11 +25,11 @@ const CYBER_QUESTIONS = [
   "Qu’est-ce qu’une sauvegarde ?",
   "Que faire si votre ordinateur est lent et affiche des pubs ?",
   "Qu’est-ce qu’un pare-feu ?",
-  "Pourquoi ne pas cliquer sur les liens dans les SMS inconnus ?",
+  "Pourquoi ne pas cliquer sur les liens dans les MAILS/SMS inconnus ?",
   "Qu’est-ce qu’une authentification biométrique ?",
   "Que faire si vous perdez votre badge d’accès ?",
   "Pourquoi chiffrer ses données ?",
-  "Qu’est-ce qu’une politique de sécurité ?"
+  "Qu’est-ce qu’une politique de sécurité (PSSI) ?"
 ];
 
 // Questions RGPD (20)
