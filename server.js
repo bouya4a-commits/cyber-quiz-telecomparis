@@ -1,63 +1,85 @@
+// server.js
 const express = require('express');
-const nodemailer = require('nodemailer');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+const RESULTS_FILE = path.join(__dirname, 'results.csv');
+
+// Créer le fichier results.csv s'il n'existe pas
+if (!fs.existsSync(RESULTS_FILE)) {
+  fs.writeFileSync(RESULTS_FILE, 'date,score,total,level\n');
+}
+
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); // pour servir le HTML
+app.use(express.static('public'));
 
-// Configuration email (à adapter)
-const transporter = nodemailer.createTransporter({
-  host: 'smtp.ecole.fr',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'cyberquiz@ecole.fr',
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-// Endpoint pour recevoir les résultats
-app.post('/api/submit-quiz', async (req, res) => {
+// Route : soumission du quiz
+app.post('/api/submit-quiz', (req, res) => {
   const { email, score, total } = req.body;
 
-  if (!email || !email.endsWith('@ecole.fr')) {
-    return res.status(400).json({ error: 'Email invalide' });
+  // Validation des données
+  if (
+    !email ||
+    typeof email !== 'string' ||
+    !/@telecom-paris\.fr$/.test(email) || // Accepte : xxx@telecom-paris.fr (y compris sous-domaines comme etud.telecom-paris.fr)
+    typeof score !== 'number' ||
+    typeof total !== 'number' ||
+    score < 0 ||
+    total <= 0 ||
+    score > total
+  ) {
+    return res.status(400).json({ error: 'Données invalides ou email non autorisé.' });
   }
 
-  const percent = Math.round((score / total) * 100);
+  // Calcul du niveau
+  const percent = (score / total) * 100;
   let level = 'Débutant';
   if (percent >= 90) level = 'Expert';
   else if (percent >= 70) level = 'Avancé';
   else if (percent >= 50) level = 'Intermédiaire';
 
-  // 1. Envoi du résultat à l'utilisateur
-  await transporter.sendMail({
-    from: '"Quiz Cybersécurité" <cyberquiz@ecole.fr>',
-    to: email,
-    subject: `Votre résultat au quiz cybersécurité - ${percent}%`,
-    html: `
-      <h2>Votre résultat : ${percent}% (${level})</h2>
-      <p>Merci d’avoir participé au quiz de sensibilisation à la cybersécurité !</p>
-      <p>🏆 ${getBadge(percent)}</p>
-    `
-  });
-
-  // 2. Sauvegarde anonymisée pour l'admin (sans email)
+  // Sauvegarde anonymisée (aucun email stocké)
   const logEntry = `${new Date().toISOString()},${score},${total},${level}\n`;
-  fs.appendFileSync(path.join(__dirname, 'results.csv'), logEntry);
+  fs.appendFileSync(RESULTS_FILE, logEntry);
 
-  res.json({ success: true });
+  // Réponse au frontend
+  res.json({ success: true, level, score: percent });
 });
 
-function getBadge(percent) {
-  if (percent >= 90) return '🥇 Expert en cybersécurité !';
-  if (percent >= 70) return '🥈 Très bon niveau !';
-  if (percent >= 50) return '🥉 Bonnes bases !';
-  return '📚 À renforcer !';
-}
+// Route : données pour le tableau de bord admin
+app.get('/api/results', (req, res) => {
+  try {
+    const content = fs.readFileSync(RESULTS_FILE, 'utf8');
+    const lines = content.trim().split('\n').slice(1); // Ignore l'en-tête
 
-app.listen(3000, () => console.log('Serveur lancé sur http://localhost:3000'));
+    const data = lines
+      .filter(line => line.trim() !== '') // Ignore les lignes vides
+      .map(line => {
+        const [date, score, total, level] = line.split(',');
+        return {
+          date,
+          score: parseInt(score, 10),
+          total: parseInt(total, 10),
+          level
+        };
+      });
+
+    res.json(data);
+  } catch (err) {
+    console.error('Erreur lecture results.csv:', err);
+    res.status(500).json({ error: 'Impossible de charger les résultats.' });
+  }
+});
+
+// Démarrage du serveur
+app.listen(PORT, () => {
+  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`🎯 Quiz : http://localhost:${PORT}/`);
+  console.log(`📊 Admin : http://localhost:${PORT}/admin.html`);
+});
