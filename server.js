@@ -35,7 +35,7 @@ const CYBER_QUESTIONS = [
 // Questions RGPD (20)
 const RGPD_QUESTIONS = [
   "Qu’est-ce que le RGPD ?",
-  "Qui est le Délégué à la Protection des Données (DPO) ?",
+  "Qui est le/la Délégué(e) à la Protection des Données (DPO) ?",
   "Quand faut-il obtenir le consentement ?",
   "Que faire en cas de fuite de données ?",
   "Combien de temps conserver les données ?",
