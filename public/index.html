@@ -10,19 +10,12 @@
     .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     h1 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
     input, select, button { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    button:not(.next-btn) { 
-      background: #3498db; 
-      color: white; 
-      border: none; 
-      cursor: pointer; 
-      font-weight: bold; 
-    }
+    button:not(.next-btn) { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
     button:not(.next-btn):hover { background: #2980b9; }
     .screen { display: none; }
     .active { display: block; }
     .badge { font-size: 80px; margin: 20px 0; text-align: center; }
 
-    /* ✅ Bouton SUIVANT distinct */
     .next-btn {
       background: #2ecc71 !important;
       color: white !important;
@@ -36,13 +29,7 @@
       width: 100% !important;
       font-size: 16px !important;
     }
-    .next-btn:hover {
-      background: #27ae60 !important;
-    }
-    .next-btn:disabled {
-      background: #bdc3c7 !important;
-      cursor: not-allowed;
-    }
+    .next-btn:hover { background: #27ae60 !important; }
   </style>
 </head>
 <body>
@@ -78,7 +65,8 @@
   </div>
 
   <script>
-    const questions = [
+    // ⚠️ DOIT ÊTRE IDENTIQUE À CELUI DANS server.js
+    const QUESTIONS = [
       { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
       { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
       { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
@@ -87,6 +75,7 @@
     ];
 
     let current = 0, score = 0, userEmail = '', userDepartment = '';
+    let userAnswers = new Array(QUESTIONS.length).fill(-1); // -1 = non répondu
 
     function startQuiz() {
       const email = document.getElementById('email').value.trim();
@@ -102,7 +91,7 @@
     }
 
     function loadQuestion() {
-      const q = questions[current];
+      const q = QUESTIONS[current];
       document.getElementById('question').innerHTML = `<h2>${q.q}</h2>`;
       const answers = document.getElementById('answers');
       answers.innerHTML = '';
@@ -117,27 +106,22 @@
     }
 
     function selectAnswer(selected) {
-      const q = questions[current];
-      const buttons = document.querySelectorAll('#answers button');
-      buttons.forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === selected) {
-          if (i === q.correct) {
-            btn.style.backgroundColor = '#d4edda';
-            score++;
-          } else {
-            btn.style.backgroundColor = '#f8d7da';
-          }
-        } else if (i === q.correct) {
-          btn.style.backgroundColor = '#d4edda';
-        }
-      });
+      const q = QUESTIONS[current];
+      userAnswers[current] = selected;
+      if (selected === q.correct) {
+        score++;
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
+      } else {
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
+        document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
+      }
+      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
       document.getElementById('next').style.display = 'block';
     }
 
     function next() {
       current++;
-      if (current < questions.length) {
+      if (current < QUESTIONS.length) {
         loadQuestion();
       } else {
         showResult();
@@ -145,7 +129,7 @@
     }
 
     function showResult() {
-      const percent = Math.round((score / questions.length) * 100);
+      const percent = Math.round((score / QUESTIONS.length) * 100);
       let badge = '📚', message = '';
       if (percent >= 80) { badge = '🥇'; message = "Excellent !"; }
       else if (percent >= 60) { badge = '🥈'; message = "Très bon !"; }
@@ -156,14 +140,21 @@
       document.getElementById('message').textContent = message;
       document.getElementById('details').innerHTML = `
         Pour : <strong>${userEmail}</strong><br>
-        Score : <strong>${percent}%</strong> (${score}/${questions.length})<br>
+        Score : <strong>${percent}%</strong> (${score}/${QUESTIONS.length})<br>
         Département : ${userDepartment}
       `;
 
+      // ✅ Envoi des réponses détaillées
       fetch('/api/submit-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail, department: userDepartment, score, total: questions.length })
+        body: JSON.stringify({ 
+          email: userEmail, 
+          department: userDepartment, 
+          score, 
+          total: QUESTIONS.length,
+          answers: userAnswers // ← tableau des réponses
+        })
       });
 
       showScreen(3);
