@@ -11,7 +11,6 @@ cyber-quiz-telecomparis/
 ├── assets/
 │   └── logo.png               ← Logo personnalisable
 ├── server.js                  ← Backend avec routes sécurisées
-├── config.json                ← Config: logo, credentials admin
 ├── results.csv                ← Résultats (email partiellement anonymisé)
 ├── package.json               ← Dépendances et scripts
 ├── .gitignore                 ← Fichiers exclus de Git
