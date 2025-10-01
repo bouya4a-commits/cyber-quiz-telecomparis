@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>🔐 Admin Login</title>
+  <style>
+    body { font-family: Arial; background: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .form { background: white; padding: 30px; border-radius: 12px; width: 300px; text-align: center; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; }
+    button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="form">
+    <h2>Admin</h2>
+    <input type="password" id="pwd" placeholder="Mot de passe" />
+    <button onclick="login()">Se connecter</button>
+  </div>
+  <script>
+    // 🔑 Mot de passe simple (à changer en production)
+    function login() {
+      if (document.getElementById('pwd').value === 'admin123') {
+        localStorage.setItem('admin', 'true');
+        window.location = 'admin-dashboard.html';
+      } else {
+        alert('Mot de passe incorrect');
+      }
+    }
+  </script>
+</body>
+</html>
