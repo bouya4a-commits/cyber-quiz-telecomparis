@@ -57,4 +57,111 @@
       { q: "Quelle est la meilleure pratique pour un mot de passe ?", a: ["Utiliser le même partout", "Ajouter des chiffres aléatoires", "Utiliser une phrase secrète longue et unique", "Écrire sur un post-it"], correct: 2 },
       { q: "Que faire si vous recevez un email suspect ?", a: ["L’ouvrir", "Le transférer", "Le supprimer sans l’ouvrir", "Répondre"], correct: 2 },
       { q: "Qu’est-ce que le phishing ?", a: ["Un virus", "Une pêche numérique", "Une tentative de vol d’identifiants", "Un logiciel de sauvegarde"], correct: 2 },
-      { q: "Faut-il
+      { q: "Faut-il mettre à jour ses logiciels ?", a: ["Non", "Seulement les payants", "Oui, pour corriger les failles", "Uniquement si l’IT le demande"], correct: 2 },
+      { q: "Que faire en quittant votre poste ?", a: ["Verrouiller l’écran", "Laisser allumé", "Débrancher le câble", "Rien"], correct: 0 }
+    ];
+
+    let current = 0, score = 0, userEmail = '', userDepartment = '';
+
+    function startQuiz() {
+      const email = document.getElementById('email').value.trim();
+      const department = document.getElementById('department').value;
+      
+      if (!email || !department) {
+        alert("Veuillez remplir tous les champs");
+        return;
+      }
+
+      // Validation email basique
+      if (!/@.*\..+/.test(email)) {
+        alert("Email invalide");
+        return;
+      }
+
+      userEmail = email;
+      userDepartment = department;
+      
+      // Passer à l'écran du quiz
+      showScreen(2);
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const q = questions[current];
+      document.getElementById('question').innerHTML = `<h2>${q.q}</h2>`;
+      const answers = document.getElementById('answers');
+      answers.innerHTML = '';
+      q.a.forEach((a, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = a;
+        btn.style.marginTop = '10px';
+        btn.onclick = () => selectAnswer(i);
+        answers.appendChild(btn);
+      });
+      document.getElementById('next').style.display = 'none';
+    }
+
+    function selectAnswer(selected) {
+      const q = questions[current];
+      if (selected === q.correct) {
+        score++;
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#d4edda';
+      } else {
+        document.querySelectorAll('#answers button')[selected].style.backgroundColor = '#f8d7da';
+        document.querySelectorAll('#answers button')[q.correct].style.backgroundColor = '#d4edda';
+      }
+      document.querySelectorAll('#answers button').forEach(b => b.disabled = true);
+      document.getElementById('next').style.display = 'block';
+    }
+
+    function next() {
+      current++;
+      if (current < questions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      const percent = Math.round((score / questions.length) * 100);
+      let badge = '📚', message = '';
+      if (percent >= 80) { badge = '🥇'; message = "Excellent ! Vous êtes un champion de la cybersécurité !"; }
+      else if (percent >= 60) { badge = '🥈'; message = "Très bon ! Vous maîtrisez les bases essentielles."; }
+      else if (percent >= 40) { badge = '🥉'; message = "Bon début ! Relisez les bonnes pratiques."; }
+      else { message = "À revoir ! La cybersécurité est cruciale pour tous."; }
+
+      document.getElementById('badge').textContent = badge;
+      document.getElementById('message').textContent = message;
+      document.getElementById('details').innerHTML = `
+        Résultat pour : <strong>${userEmail}</strong><br>
+        Score : <strong>${percent}%</strong> (${score}/${questions.length})<br>
+        Département : ${userDepartment}
+      `;
+
+      // Envoi au backend
+      fetch('/api/submit-quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: userEmail, 
+          department: userDepartment, 
+          score, 
+          total: questions.length 
+        })
+      });
+
+      showScreen(3);
+    }
+
+    function showScreen(screenId) {
+      // Cacher tous les écrans
+      document.querySelectorAll('.screen').forEach(el => {
+        el.classList.remove('active');
+      });
+      // Afficher l'écran demandé
+      document.getElementById(`screen${screenId}`).classList.add('active');
+    }
+  </script>
+</body>
+</html>
