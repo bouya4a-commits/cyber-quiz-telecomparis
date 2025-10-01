@@ -67,6 +67,8 @@ if (!fs.existsSync(RESULTS_FILE)) {
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+// Servir les assets (logo, etc.)
+app.use('/assets', express.static('assets'));
 
 // Soumission quiz
 app.post('/api/submit-quiz', (req, res) => {
