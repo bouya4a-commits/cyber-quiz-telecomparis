@@ -11,7 +11,7 @@
       margin: 0; 
     }
     .container { 
-      max-width: 1000px; 
+      max-width: 1100px; 
       margin: 0 auto; 
       background: white; 
       border-radius: 12px; 
@@ -28,9 +28,14 @@
       padding: 20px; 
       border-bottom: 1px solid #eee; 
     }
+    h2 {
+      color: #2c3e50;
+      margin-top: 0;
+    }
     table { 
       width: 100%; 
       border-collapse: collapse; 
+      margin-top: 15px;
     }
     th, td { 
       padding: 14px 20px; 
@@ -45,10 +50,44 @@
     tr:hover { 
       background: #f1f3f5; 
     }
+    .bar-container {
+      width: 100%;
+      background: #ecf0f1;
+      border-radius: 4px;
+      margin: 8px 0;
+      height: 24px;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
     .error { 
       color: #e74c3c; 
       padding: 20px; 
       text-align: center; 
+    }
+    .question-item {
+      background: #f8f9fa;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border-left: 4px solid #e74c3c;
+    }
+    .question-text {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .question-stats {
+      font-size: 14px;
+      color: #7f8c8d;
     }
   </style>
 </head>
@@ -59,11 +98,19 @@
     </header>
 
     <div class="stats">
-      <h2>📈 Statistiques</h2>
+      <h2>📈 Statistiques globales</h2>
       <p><strong>Nombre total de participants :</strong> <span id="total-count">Chargement...</span></p>
-      
-      <h3>🏢 Répartition par département</h3>
-      <div id="dept-stats">Chargement...</div>
+      <p><strong>Score moyen global :</strong> <span id="global-avg">Chargement...</span>%</p>
+    </div>
+
+    <div class="stats">
+      <h2>🏢 Statistiques par département</h2>
+      <div id="dept-bars">Chargement...</div>
+    </div>
+
+    <div class="stats">
+      <h2>❌ Top 5 des questions les plus ratées</h2>
+      <div id="top-questions">Chargement...</div>
     </div>
 
     <div class="stats">
@@ -86,13 +133,20 @@
   </div>
 
   <script>
-    // Vérification d'authentification
     if (!localStorage.getItem('admin')) {
       alert('accès réservé à l\'administrateur');
       window.location = 'admin-login.html';
     }
 
-    // Fonction pour formater la date
+    // Questions du quiz (doit correspondre à index.html)
+    const QUESTIONS = [
+      "Quelle est la meilleure pratique pour un mot de passe ?",
+      "Que faire si vous recevez un email suspect ?",
+      "Qu’est-ce que le phishing ?",
+      "Faut-il mettre à jour ses logiciels ?",
+      "Que faire en quittant votre poste ?"
+    ];
+
     function formatDate(dateString) {
       const date = new Date(dateString);
       return date.toLocaleString('fr-FR', {
@@ -104,39 +158,106 @@
       });
     }
 
-    // Récupérer les données
+    // Couleurs pour les barres
+    const COLORS = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e'];
+
     fetch('/api/results')
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
       })
       .then(data => {
-        // Nombre total
-        document.getElementById('total-count').textContent = data.length;
-
-        // Compter par département
-        const deptCount = {};
-        data.forEach(item => {
-          deptCount[item.department] = (deptCount[item.department] || 0) + 1;
-        });
-
-        // Afficher les stats par département
-        let deptHtml = '<ul>';
-        for (const [dept, count] of Object.entries(deptCount)) {
-          deptHtml += `<li><strong>${dept}</strong> : ${count} participant(s)</li>`;
-        }
-        deptHtml += '</ul>';
-        document.getElementById('dept-stats').innerHTML = deptHtml;
-
-        // Remplir le tableau
-        const tbody = document.getElementById('results-body');
-        tbody.innerHTML = ''; // vider le "chargement..."
-
         if (data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun résultat pour le moment</td></tr>';
+          document.getElementById('total-count').textContent = '0';
+          document.getElementById('global-avg').textContent = '0';
+          document.getElementById('dept-bars').innerHTML = '<p>Aucun quiz réalisé pour le moment.</p>';
+          document.getElementById('top-questions').innerHTML = '<p>Aucune donnée disponible.</p>';
+          document.getElementById('results-body').innerHTML = '<tr><td colspan="5" style="text-align:center;">Aucun résultat</td></tr>';
           return;
         }
 
+        // === Statistiques globales ===
+        const globalAvg = (data.reduce((sum, r) => sum + (r.score / r.total), 0) / data.length * 100).toFixed(1);
+        document.getElementById('total-count').textContent = data.length;
+        document.getElementById('global-avg').textContent = globalAvg;
+
+        // === Par département ===
+        const deptStats = {};
+        data.forEach(item => {
+          if (!deptStats[item.department]) {
+            deptStats[item.department] = { count: 0, totalScore: 0, maxCount: 0 };
+          }
+          deptStats[item.department].count++;
+          deptStats[item.department].totalScore += (item.score / item.total);
+          deptStats[item.department].maxCount = Math.max(deptStats[item.department].maxCount, item.total);
+        });
+
+        // Calcul du score moyen par département
+        const deptEntries = Object.entries(deptStats).map(([dept, stats]) => ({
+          dept,
+          count: stats.count,
+          avgScore: (stats.totalScore / stats.count * 100).toFixed(1),
+          maxCount: Math.max(...data.filter(d => d.department === dept).map(d => d.total))
+        }));
+
+        // Trier par nombre de participants (desc)
+        deptEntries.sort((a, b) => b.count - a.count);
+
+        const maxCount = Math.max(...deptEntries.map(d => d.count));
+        let deptHtml = '';
+        deptEntries.forEach((entry, i) => {
+          const width = maxCount ? (entry.count / maxCount) * 100 : 0;
+          const color = COLORS[i % COLORS.length];
+          deptHtml += `
+            <div style="margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <strong>${entry.dept}</strong>
+                <span>${entry.count} tests • ${entry.avgScore}%</span>
+              </div>
+              <div class="bar-container">
+                <div class="bar-fill" style="width: ${width}%; background-color: ${color};">
+                  ${entry.count}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        document.getElementById('dept-bars').innerHTML = deptHtml;
+
+        // === Top 5 des questions ratées ===
+        // On suppose que toutes les sessions ont les mêmes questions (5 questions)
+        const questionStats = Array(QUESTIONS.length).fill(0); // nb de mauvaises réponses
+        const questionAttempts = Array(QUESTIONS.length).fill(0); // nb de tentatives
+
+        data.forEach(session => {
+          // On ne peut pas récupérer les réponses individuelles → on fait une approximation
+          // Hypothèse : les erreurs sont réparties uniformément parmi les questions non réussies
+          const errors = session.total - session.score;
+          if (errors > 0) {
+            for (let i = 0; i < QUESTIONS.length; i++) {
+              questionAttempts[i]++;
+              // Répartir les erreurs de façon aléatoire (ou uniforme)
+              // Pour plus de précision, il faudrait stocker les réponses par question
+            }
+          }
+        });
+
+        // ⚠️ ATTENTION : sans stockage des réponses par question, on ne peut pas avoir le vrai top 5
+        // Donc on affiche un message explicatif
+        document.getElementById('top-questions').innerHTML = `
+          <p style="color:#e67e22;">
+            ℹ️ Pour afficher les questions les plus ratées, le quiz doit enregistrer les réponses individuelles.<br>
+            Actuellement, seul le score global est sauvegardé.
+          </p>
+          <p>
+            <strong>Pour activer cette fonctionnalité :</strong><br>
+            Modifiez <code>server.js</code> pour stocker les réponses par question.
+          </p>
+        `;
+
+        // === Détail des participants ===
+        const tbody = document.getElementById('results-body');
+        tbody.innerHTML = '';
         data.forEach(item => {
           const percent = Math.round((item.score / item.total) * 100);
           const row = document.createElement('tr');
@@ -153,7 +274,9 @@
       .catch(error => {
         console.error('Erreur:', error);
         document.getElementById('total-count').textContent = 'Erreur';
-        document.getElementById('dept-stats').innerHTML = '<p class="error">❌ Impossible de charger les données. Vérifiez que le serveur est lancé.</p>';
+        document.getElementById('global-avg').textContent = 'Erreur';
+        document.getElementById('dept-bars').innerHTML = '<p class="error">❌ Impossible de charger les données.</p>';
+        document.getElementById('top-questions').innerHTML = '<p class="error">Erreur de chargement.</p>';
         document.getElementById('results-body').innerHTML = '<tr><td colspan="5" class="error">Erreur de chargement</td></tr>';
       });
   </script>
