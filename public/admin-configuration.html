@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>⚙️ Configuration Admin</title>
+  <style>
+    body { font-family: Arial; background: #f5f7fa; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+    .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    h2 { color: #3498db; margin-bottom: 15px; }
+    input, select, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button { background: #3498db; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #2980b9; }
+    .danger { background: #e74c3c; }
+    .danger:hover { background: #c0392b; }
+    .question-item {
+      background: #f8f9fa;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border-left: 3px solid #3498db;
+    }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ Configuration Admin</h1>
+
+    <!-- Gestion des questions -->
+    <div class="section">
+      <h2>📝 Gestion des questions</h2>
+      <div>
+        <label>Quiz :</label>
+        <select id="quiz-type-config">
+          <option value="cyber">Cybersécurité</option>
+          <option value="rgpd">RGPD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Question :</label>
+        <textarea id="new-question" placeholder="Entrez la question"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Réponses (une par ligne) :</label>
+        <textarea id="new-answers" placeholder="Réponse 1&#10;Réponse 2&#10;Réponse 3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Réponse correcte (indice à partir de 0) :</label>
+        <input type="number" id="correct-answer" min="0" placeholder="0">
+      </div>
+      <button onclick="addQuestion()">➕ Ajouter une question</button>
+      <div id="questions-list" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- Domaines email -->
+    <div class="section">
+      <h2>📧 Domaines email autorisés</h2>
+      <p>Ajoutez jusqu'à 5 domaines (ex: telecom-paris.fr, imt.fr)</p>
+      <div id="email-domains">
+        <input type="text" placeholder="Domaine 1" id="domain1">
+        <input type="text" placeholder="Domaine 2" id="domain2">
+        <input type="text" placeholder="Domaine 3" id="domain3">
+        <input type="text" placeholder="Domaine 4" id="domain4">
+        <input type="text" placeholder="Domaine 5" id="domain5">
+      </div>
+      <button onclick="saveEmailDomains()">💾 Sauvegarder les domaines</button>
+    </div>
+
+    <!-- Départements -->
+    <div class="section">
+      <h2>🏢 Gestion des départements</h2>
+      <input type="text" id="new-department" placeholder="Nouveau département">
+      <button onclick="addDepartment()">➕ Ajouter</button>
+      <div id="departments-list" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- Reset stats -->
+    <div class="section">
+      <h2>⚠️ Réinitialisation</h2>
+      <button class="danger" onclick="resetStats()">🗑️ Réinitialiser toutes les statistiques</button>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem('admin')) {
+      alert('Accès réservé à l\'administrateur');
+      window.location = 'admin-login.html';
+    }
+
+    // Charger la configuration au démarrage
+    window.onload = function() {
+      loadConfig();
+      loadDepartments();
+      loadQuestions();
+    };
+
+    // === GESTION DES QUESTIONS ===
+    function loadQuestions() {
+      fetch('/api/config/questions')
+        .then(r => r.json())
+        .then(data => {
+          let html = '<h3>Questions existantes :</h3>';
+          (data.cyber || []).forEach((q, i) => {
+            html += `<div class="question-item">Cyber ${i}: ${q.q} <button onclick="deleteQuestion('cyber', ${i})">🗑️</button></div>`;
+          });
+          (data.rgpd || []).forEach((q, i) => {
+            html += `<div class="question-item">RGPD ${i}: ${q.q} <button onclick="deleteQuestion('rgpd', ${i})">🗑️</button></div>`;
+          });
+          document.getElementById('questions-list').innerHTML = html;
+        });
+    }
+
+    function addQuestion() {
+      const quizType = document.getElementById('quiz-type-config').value;
+      const question = document.getElementById('new-question').value;
+      const answers = document.getElementById('new-answers').value.split('\n').filter(a => a.trim());
+      const correct = parseInt(document.getElementById('correct-answer').value);
+
+      if (!question || answers.length === 0 || isNaN(correct) || correct >= answers.length) {
+        alert('Veuillez remplir tous les champs correctement');
+        return;
+      }
+
+      fetch('/api/config/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizType, question, answers, correct })
+      }).then(() => {
+        loadQuestions();
+        document.getElementById('new-question').value = '';
+        document.getElementById('new-answers').value = '';
+        document.getElementById('correct-answer').value = '';
+      });
+    }
+
+    function deleteQuestion(quizType, index) {
+      if (confirm('Supprimer cette question ?')) {
+        fetch(`/api/config/questions?quizType=${quizType}&index=${index}`, { method: 'DELETE' })
+          .then(() => loadQuestions());
+      }
+    }
+
+    // === DOMAINES EMAIL ===
+    function loadConfig() {
+      fetch('/api/config')
+        .then(r => r.json())
+        .then(config => {
+          const domains = config.emailDomains || [];
+          for (let i = 1; i <= 5; i++) {
+            const input = document.getElementById(`domain${i}`);
+            input.value = domains[i-1] || '';
+          }
+        });
+    }
+
+    function saveEmailDomains() {
+      const domains = [];
+      for (let i = 1; i <= 5; i++) {
+        const val = document.getElementById(`domain${i}`).value.trim();
+        if (val) domains.push(val);
+      }
+      fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailDomains: domains })
+      }).then(() => alert('✅ Domaines sauvegardés'));
+    }
+
+    // === DÉPARTEMENTS ===
+    function loadDepartments() {
+      fetch('/api/config/departments')
+        .then(r => r.json())
+        .then(depts => {
+          let html = '<h3>Départements existants :</h3>';
+          depts.forEach((dept, i) => {
+            html += `<div class="question-item">${dept} <button onclick="deleteDepartment(${i})">🗑️</button></div>`;
+          });
+          document.getElementById('departments-list').innerHTML = html;
+        });
+    }
+
+    function addDepartment() {
+      const dept = document.getElementById('new-department').value.trim();
+      if (!dept) return;
+      fetch('/api/config/departments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ department: dept })
+      }).then(() => {
+        loadDepartments();
+        document.getElementById('new-department').value = '';
+      });
+    }
+
+    function deleteDepartment(index) {
+      if (confirm('Supprimer ce département ?')) {
+        fetch(`/api/config/departments?index=${index}`, { method: 'DELETE' })
+          .then(() => loadDepartments());
+      }
+    }
+
+    // === RÉINITIALISATION ===
+    function resetStats() {
+      if (confirm('⚠️ Êtes-vous sûr de vouloir supprimer TOUTES les statistiques ? Cette action est irréversible.')) {
+        fetch('/api/reset-stats', { method: 'POST' })
+          .then(() => {
+            alert('✅ Statistiques réinitialisées');
+            window.location.reload();
+          });
+      }
+    }
+  </script>
+</body>
+</html>
