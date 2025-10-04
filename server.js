@@ -6,7 +6,7 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const RESULTS_FILE = path.join(__dirname, 'results.csv');
 const CONFIG_FILE = path.join(__dirname, 'config.json');
 
